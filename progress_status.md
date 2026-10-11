@@ -132,30 +132,39 @@ lab1/
 └── đề.txt
 ```
 
-### Data flow
+### Data flow (chuẩn 2 bước: split trước, transform sau)
 ```
-torchvision FashionMNIST (28×28, 1 channel, [0,255])
+BƯỚC 1 — SPLIT (1 lần, ra .png trên disk)
+torchvision FashionMNIST (28×28 grayscale)
         │
         ▼
-   ToTensor → [0,1] float32
+split_fashionmnist_to_disk(seed=42)
         │
         ▼
-Normalize(mean=0.2860, std=0.3530)
+data/raw/train/<class>/<idx>.png   (50.000 ảnh)
+data/raw/val/<class>/<idx>.png     (10.000 ảnh)
+data/raw/test/<class>/<idx>.png    (10.000 ảnh)
+
+BƯỚC 2 — TRANSFORM (mỗi lần load, on-the-fly)
+ImageFolder + transforms.Compose
+   train: ToTensor → [0,1] → Normalize(mean, std) → [optional augmentation]
+   val:   ToTensor → [0,1] → Normalize(mean, std)
+   test:  ToTensor → [0,1] → Normalize(mean, std)
         │
         ▼
-   DataLoader (batch_size=64, shuffle train)
+DataLoader (batch_size=64, shuffle train)
         │
         ▼
-   FashionCNN (forward) → logits [batch, 10]
+FashionCNN (forward) → logits [batch, 10]
         │
         ▼
 CrossEntropyLoss(logits, labels)
         │
         ▼
-   Adam.step() → cập nhật weights
+Adam.step() → cập nhật weights
         │
         ▼
-   mỗi epoch: validate → lưu metric
+mỗi epoch: validate → lưu metric
         │
         ▼
 sau train: test accuracy + save model.pt
@@ -171,7 +180,8 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 | Hàm | Input | Output | Ghi chú |
 |-----|-------|--------|---------|
-| `build_dataloaders(config)` | dict config | `{train, val, test}` DataLoaders | Download lần đầu vào `data/raw/`. |
+| `split_fashionmnist_to_disk(root, val_split, seed)` | root path, số val, seed | Sinh 70.000 file `.png` | Chạy 1 lần, idempotent. |
+| `build_dataloaders(config)` | dict config | `{train, val, test}` DataLoaders | Dùng `ImageFolder` + transform riêng từng tập. |
 | `FashionCNN()` | — | `nn.Module` | 2 conv (32, 64 filter) + 2 FC (128, 10). |
 | `train_one_epoch(model, loader, criterion, optimizer, device)` | các thành phần | `(avg_loss, avg_acc)` | 1 epoch train. |
 | `validate(model, loader, criterion, device)` | các thành phần | `(avg_loss, avg_acc)` | Không cập nhật weights. |
@@ -214,17 +224,25 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 ## Active Module: M1 — Data module
 
-- **Describe** — `src/data/dataset.py` cung cấp hàm `build_dataloaders(config)` trả về dict gồm `train`, `val`, `test` DataLoaders. Tải FashionMNIST, áp `ToTensor` + `Normalize`, chia train/val theo `val_split`.
-- **Goal / purpose** — Có data pipeline sẵn sàng cho M2 (model) và M3 (training). Download một lần vào `data/raw/`, cache để lần sau không tải lại.
-- **Pipeline** — `torchvision.datasets.FashionMNIST → ToTensor → Normalize(mean, std) → random_split → DataLoader`.
+- **Describe** — Chia dataset thô FashionMNIST thành 3 thư mục ảnh `.png` (train/val/test) **trước**, sau đó mới áp transform ToTensor + Normalize **trên từng tập riêng** để build DataLoader. Mục đích: tránh data leakage (split trước khi transform) và cho phép augmentation khác nhau giữa train vs val/test.
+- **Goal / purpose** — Có 3 tập ảnh `.png` tách biệt trên disk + 3 DataLoader sẵn sàng cho M2 (model) và M3 (training).
+- **Pipeline (2 bước)**
+  1. **Split (chạy 1 lần)** — Tải FashionMNIST, lưu từng ảnh ra file `.png` theo cấu trúc:
+     ```
+     data/raw/train/<class_id>/<idx>.png
+     data/raw/val/<class_id>/<idx>.png
+     data/raw/test/<class_id>/<idx>.png
+     ```
+     Chia: train 50.000 / val 10.000 / test 10.000, dùng `seed=42` để reproducible.
+  2. **Transform (mỗi lần load)** — Mỗi tập dùng `ImageFolder` + `transforms.Compose` riêng. Train có thể có augmentation, val/test thì không. Mean/std giữ cố định theo FashionMNIST.
 - **How / experiment plan (sub-tasks)**
-  - [ ] Viết `src/data/dataset.py`: `build_dataloaders(config: dict) -> {"train", "val", "test"}`.
-  - [ ] Hỗ trợ `seed` để split reproducible.
-  - [ ] In shape 1 batch để verify.
-  - [ ] Viết `tests/test_dataset.py`: assert batch shape `[B, 1, 28, 28]`, label `int64`, range pixel đúng sau normalize.
-- **Status** — Describe ⏳ / Generate ⏳ / Review ⏳ / Run ⏳ / Test ⏳ / Refactor ⏳ / Commit ⏳
+  - [ ] Viết `src/data/split.py`: hàm `split_fashionmnist_to_disk(root, val_split, seed)` — chạy 1 lần, sinh 70.000 file `.png` vào `data/raw/`.
+  - [ ] Viết `src/data/dataset.py`: hàm `build_dataloaders(config)` — dùng `ImageFolder`, transform riêng cho từng tập, trả về dict3 loader.
+  - [ ] In shape 1 batch để verify `[B, 1, 28, 28]`.
+  - [ ] Viết `tests/test_dataset.py`: assert shape, dtype, range pixel sau normalize; assert số lượng ảnh đúng (50k/10k/10k).
+- **Status** — Describe ✅ / Generate ⏳ / Review ⏳ / Run ⏳ / Test ⏳ / Refactor ⏳ / Commit ⏳
 - **Last run** — chưa có.
-- **DoD checklist** — Loader chạy được trên máy sạch, test pass, in được shape, val split reproducible.
+- **DoD checklist** — 70.000 file `.png` sinh ra đúng cấu trúc; loader chạy được; test pass; split reproducible với cùng seed.
 
 ---
 
@@ -247,6 +265,7 @@ results/runs/<ts>/metrics.json + ảnh PNG
 | 2026-10-11 | Normalize theo mean/std FashionMNIST thực nghiệm | Chia 255, ImageNet stats | Ổn định hơn, là chuẩn cho bài classification. |
 | 2026-10-11 | Auto-detect device | Ép CPU, ép CUDA | Linh hoạt cho cả 2 môi trường. |
 | 2026-10-11 | Experiment grid: lr × optimizer | Batch size, depth | 2 yếu tố ảnh hưởng convergence rõ nhất cho người mới. |
+| 2026-10-11 | Chia data **trước** rồi transform **sau**; ảnh xuất ra `.png` | Transform toàn bộ rồi mới `random_split` | Tránh data leakage qua normalization stats; cho phép augmentation khác nhau giữa train và val/test; reproducible, dễ debug từng tập trên disk. |
 
 ---
 
