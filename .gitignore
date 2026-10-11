@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data (FashionMNIST tải về sẽ được cache tại đây, không commit)
+data/raw/
+data/processed/
+data/splits/
+
+# PyTorch
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs & kết quả
+*.log
+logs/
+results/runs/*/checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key
+secrets.yaml

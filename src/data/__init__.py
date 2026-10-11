@@ -1,0 +1,1 @@
+"""Data module — load FashionMNIST, áp transform, build DataLoaders."""

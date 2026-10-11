@@ -1,0 +1,44 @@
+# Baseline config cho Practice 1 — FashionMNIST Classification
+# Áp dụng cho CNN 2 lớp conv + 2 lớp FC.
+
+# Reproducibility
+seed: 42
+
+# Device: "auto" | "cpu" | "cuda"
+device: auto
+
+# Data
+data:
+  root: data/raw
+  batch_size: 64
+  num_workers: 2
+  val_split: 10000        # lấy từ train set
+  mean: 0.2860
+  std: 0.3530
+
+# Model
+model:
+  name: FashionCNN
+  conv1_channels: 32
+  conv2_channels: 64
+  fc_hidden: 128
+  num_classes: 10
+  dropout: 0.25
+
+# Training
+train:
+  epochs: 10
+  learning_rate: 0.001
+  optimizer: adam           # adam | sgd | adamw
+  weight_decay: 0.0
+  grad_clip: 1.0            # max_norm cho gradient clipping, 0 = tắt
+  log_every_n_batches: 100
+
+# Evaluation
+eval:
+  batch_size: 256
+  num_predictions_to_plot: 10
+
+# Output
+output:
+  run_dir: results/runs     # sẽ tạo subfolder theo timestamp

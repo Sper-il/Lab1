@@ -1,0 +1,1 @@
+"""Training module — vòng lặp train / validate."""

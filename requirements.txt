@@ -1,0 +1,15 @@
+# Practice 1 — PyTorch FashionMNIST Classification
+
+# Core
+torch>=2.0,<3.0
+torchvision>=0.15,<1.0
+numpy>=1.24,<2.0
+
+# Visualization
+matplotlib>=3.7,<4.0
+
+# Config
+pyyaml>=6.0,<7.0
+
+# Testing
+pytest>=7.0,<9.0
