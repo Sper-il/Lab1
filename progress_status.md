@@ -222,27 +222,19 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 ---
 
-## Active Module: M1 — Data module
+## Active Module: M2 — Model module
 
-- **Describe** — Chia dataset thô FashionMNIST thành 3 thư mục ảnh `.png` (train/val/test) **trước**, sau đó mới áp transform ToTensor + Normalize **trên từng tập riêng** để build DataLoader. Mục đích: tránh data leakage (split trước khi transform) và cho phép augmentation khác nhau giữa train vs val/test.
-- **Goal / purpose** — Có 3 tập ảnh `.png` tách biệt trên disk + 3 DataLoader sẵn sàng cho M2 (model) và M3 (training).
-- **Pipeline (2 bước)**
-  1. **Split (chạy 1 lần)** — Tải FashionMNIST, lưu từng ảnh ra file `.png` theo cấu trúc:
-     ```
-     data/raw/train/<class_id>/<idx>.png
-     data/raw/val/<class_id>/<idx>.png
-     data/raw/test/<class_id>/<idx>.png
-     ```
-     Chia: train 50.000 / val 10.000 / test 10.000, dùng `seed=42` để reproducible.
-  2. **Transform (mỗi lần load)** — Mỗi tập dùng `ImageFolder` + `transforms.Compose` riêng. Train có thể có augmentation, val/test thì không. Mean/std giữ cố định theo FashionMNIST.
+- **Describe** — `src/models/fashion_cnn.py` định nghĩa class `FashionCNN(nn.Module)`: 2 lớp conv (32, 64 filter, kernel 3×3, ReLU + MaxPool) → flatten → 2 FC (128, 10) + Dropout. Đọc config để cho phép thay đổi channels/dropout/num_classes.
+- **Goal / purpose** — Có model nhận input `[B, 1, 28, 28]`, xuất logits `[B, 10]`. Sẵn sàng cho M3 (training) và M4 (evaluation).
+- **Pipeline** — `nn.Conv2d → ReLU → MaxPool2d → Conv2d → ReLU → MaxPool2d → Flatten → Linear → ReLU → Dropout → Linear → logits`.
 - **How / experiment plan (sub-tasks)**
-  - [ ] Viết `src/data/split.py`: hàm `split_fashionmnist_to_disk(root, val_split, seed)` — chạy 1 lần, sinh 70.000 file `.png` vào `data/raw/`.
-  - [ ] Viết `src/data/dataset.py`: hàm `build_dataloaders(config)` — dùng `ImageFolder`, transform riêng cho từng tập, trả về dict3 loader.
-  - [ ] In shape 1 batch để verify `[B, 1, 28, 28]`.
-  - [ ] Viết `tests/test_dataset.py`: assert shape, dtype, range pixel sau normalize; assert số lượng ảnh đúng (50k/10k/10k).
+  - [ ] Viết `src/models/fashion_cnn.py`: class `FashionCNN`, hàm `count_parameters()`.
+  - [ ] In forward output shape để verify `[B, 10]`.
+  - [ ] Viết `tests/test_model.py`: assert output shape, output dtype, param count hợp lý, gradient flow (backward 1 lần).
+  - [ ] Update `src/models/__init__.py` để export `FashionCNN`.
 - **Status** — Describe ✅ / Generate ⏳ / Review ⏳ / Run ⏳ / Test ⏳ / Refactor ⏳ / Commit ⏳
 - **Last run** — chưa có.
-- **DoD checklist** — 70.000 file `.png` sinh ra đúng cấu trúc; loader chạy được; test pass; split reproducible với cùng seed.
+- **DoD checklist** — Model chạy được trên CPU, output shape đúng, gradient flow OK, test pass.
 
 ---
 
@@ -252,7 +244,8 @@ results/runs/<ts>/metrics.json + ảnh PNG
 |---|--------|------|--------|--------|---------|
 | 0 | Define + Design | 2026-10-11 | ✅ | — | Phase 1 + Phase 2 xong. |
 | 1 | M0 — Scaffold | 2026-10-11 | ✅ | 599d20f | 27 file: folder + requirements + config + 6 __init__.py + docs stub. |
-| 2 | M1 — Data module | 2026-10-11 | ⏳ | — | Tiếp theo: src/data/dataset.py. |
+| 2 | M1 — Data module | 2026-10-11 | ✅ | ff2e11a | 70.000 ảnh .png sinh ra; 11/11 pytest pass; split reproducible. |
+| 3 | M2 — Model module | 2026-10-11 | ⏳ | — | Tiếp theo: src/models/fashion_cnn.py. |
 
 ---
 
