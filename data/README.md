@@ -103,4 +103,5 @@ pytest tests/test_dataset.py -v
 - `src/data/split.py` — code split
 - `src/data/dataset.py` — code load
 - `tests/test_dataset.py` — 11 test
-- `docs/data-flow.md` — luồng dữ liệu end-to-end
+- `docs/PHASE1_REPORT.md` — báo cáo Phase 1
+- `docs/architecture.md` — system architecture

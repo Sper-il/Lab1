@@ -149,14 +149,19 @@ python run_eda_visualization.py
 - `src/data/preprocessing.py` - Data cleaning + preprocessing
 - `src/data/split.py` - Train/val/test split
 
-### Documentation (7 files)
-- `README.md` - Project overview
-- `AI_Usage.md` - AI assistance report
-- `progress_status.md` - Progress tracking
-- `docs/audit_code.md` - Code audit
-- `docs/CHANGELOG.md` - Version history
+### Documentation
+- `README.md` - Project overview (root)
+- `progress_status.md` - Progress tracking (root)
+- `data/README.md` - Data folder guide
+- `docs/README.md` - Documentation index
+- `docs/AI_Usage.md` - AI assistance report
 - `docs/ARCHITECTURE.md` - System architecture
 - `docs/EXPERIMENTS.md` - Experiment log
+- `docs/PHASE1_REPORT.md` - Phase 1 summary (this file)
+- `docs/PHASE2_PLAN.md` - Phase 2 plan (3 people)
+- `docs/QUICK_START.md` - Quick start guide
+- `docs/audit_code.md` - Code audit report
+- `docs/CHANGELOG.md` - Version history
 
 ### Empty Placeholders (8 files for Phase 2+)
 - `src/models/baseline_model.py`

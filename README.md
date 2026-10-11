@@ -32,10 +32,16 @@ Fashion-MNIST is a dataset of Zalando's article images, consisting of:
 ```
 e:\lab1/
 ├── data/
-│   ├── raw/                # Original FashionMNIST dataset
-│   ├── processed/          # Transformed/augmented data
-│   └── splits/             # Train/val/test split info
-│       └── split_info.txt
+│   ├── raw/                # Original FashionMNIST dataset (gitignored)
+│   │   ├── FashionMNIST/   # Original archive
+│   │   ├── train/          # Raw train data (50k ảnh PNG)
+│   │   ├── val/            # Raw val data (10k ảnh PNG)
+│   │   ├── test/           # Raw test data (10k ảnh PNG)
+│   │   └── _torchvision_cache/  # Torchvision download cache
+│   ├── processed/          # Transformed/augmented data (.gitkeep)
+│   ├── splits/             # Train/val/test split info
+│   │   └── split_info.txt
+│   └── README.md           # Data folder guide
 ├── src/
 │   ├── data/               # Phase 1: Data preparation modules
 │   │   ├── __init__.py
@@ -58,11 +64,11 @@ e:\lab1/
 │       ├── model_io.py          (placeholder)
 │       └── experiment_tracker.py (placeholder)
 ├── models/
-│   └── checkpoints/        # Saved model weights
-├── notebooks/              # Jupyter notebooks
-├── tests/                  # Unit tests
+│   └── checkpoints/        # Saved model weights (.gitkeep)
+├── notebooks/              # Jupyter notebooks (empty)
+├── tests/                  # Unit tests (empty)
 ├── docs/                   # 📁 All project documentation
-│   ├── README.md           # This file
+│   ├── README.md           # Docs index
 │   ├── AI_Usage.md         # AI assistance report
 │   ├── progress_status.md  # Project progress tracking
 │   ├── audit_code.md       # Code audit report
@@ -70,7 +76,13 @@ e:\lab1/
 │   ├── ARCHITECTURE.md     # System architecture
 │   ├── EXPERIMENTS.md      # Experiment log
 │   ├── PHASE1_REPORT.md    # Phase 1 summary report
-│   └── QUICK_START.md      # Quick start guide
+│   ├── PHASE2_PLAN.md      # Phase 2 plan (3 people, aligned với đề)
+│   ├── QUICK_START.md      # Quick start guide
+│   └── reports/            # Phase 2 reports
+│       ├── REPORT_TEMPLATE.md
+│       ├── nguoi1_models_report.md
+│       ├── nguoi2_training_report.md
+│       └── nguoi3_evaluation_report.md
 ├── configs/
 │   └── model_config.yaml   # Model configuration
 ├── results/
@@ -88,6 +100,9 @@ e:\lab1/
 ├── run_eda_visualization.py   # Run EDA visualization
 ├── main.py                    # Main training script (Phase 2+)
 ├── requirements.txt           # Python dependencies
+├── progress_status.md         # (root) Project status
+├── README.md                  # (root) This file
+├── đề.txt                     # Đề bài
 └── .gitignore
 ```
 
@@ -187,23 +202,36 @@ python src/evaluation/evaluate_model.py --model models/checkpoints/best_model.pt
 
 ## 11. Documentation
 
-| Document | Description |
-|----------|-------------|
+### 📄 Root files
+| File | Description |
+|------|-------------|
+| [README.md](README.md) | Project overview (this file) |
+| [progress_status.md](progress_status.md) | Project progress tracking |
+| [đề.txt](đề.txt) | Đề bài / Exercise requirements |
+| [requirements.txt](requirements.txt) | Python dependencies |
+
+### 📁 data/
+| File | Description |
+|------|-------------|
+| [data/README.md](data/README.md) | Data folder guide (cách sinh lại data từ FashionMNIST) |
+
+### 📁 docs/
+| File | Description |
+|------|-------------|
 | [docs/README.md](docs/README.md) | Documentation index |
 | [docs/AI_Usage.md](docs/AI_Usage.md) | AI assistance report |
-| [docs/progress_status.md](docs/progress_status.md) | Project progress tracking |
-| [docs/audit_code.md](docs/audit_code.md) | Code audit report |
-| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | Experiment log |
 | [docs/PHASE1_REPORT.md](docs/PHASE1_REPORT.md) | Phase 1 summary |
+| [docs/PHASE2_PLAN.md](docs/PHASE2_PLAN.md) | Phase 2 plan (3 people, aligned với đề) |
 | [docs/QUICK_START.md](docs/QUICK_START.md) | Quick start guide |
-| [docs/PHASE2_PLAN.md](docs/PHASE2_PLAN.md) | Phase 2 work plan (3 people, aligned với đề) |
+| [docs/audit_code.md](docs/audit_code.md) | Code audit report |
+| [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |
 
-### Phase 2 Reports (docs/reports/)
-
+### 📁 docs/reports/ (Phase 2 reports)
 | Report | Person | Module (theo đề) |
 |--------|--------|------------------|
+| [docs/reports/REPORT_TEMPLATE.md](docs/reports/REPORT_TEMPLATE.md) | - | Template cho reports |
 | [docs/reports/nguoi1_models_report.md](docs/reports/nguoi1_models_report.md) | Người 1 | Build Network + Hyperparameter Experiment |
 | [docs/reports/nguoi2_training_report.md](docs/reports/nguoi2_training_report.md) | Người 2 | Training Loop + Visualize Loss |
 | [docs/reports/nguoi3_evaluation_report.md](docs/reports/nguoi3_evaluation_report.md) | Người 3 | Evaluate + Save/Load + Display Predictions |
