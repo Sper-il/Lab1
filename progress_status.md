@@ -253,6 +253,7 @@ results/runs/<ts>/metrics.json + ảnh PNG
 | 8 | README đủ 10 mục | 2026-10-11 | ✅ | ccd6de3 | Mở rộng README lên 212 dòng theo template 10 mục. |
 | 9 | AI_Usage 7 mục | 2026-10-11 | ✅ | 8612ff9 | Rewrite AI_Usage theo template 7 mục. |
 | 10 | M2 — Model module | 2026-10-11 | ⏳ | — | Tiếp theo: `src/models/fashion_cnn.py`. |
+| 11 | EDA notebook | 2026-10-11 | ✅ | 0de692d | `notebooks/01_eda.ipynb` (6 cells: load/shape/distribution/visualize + kết luận) + `scripts/verify_eda.py` chạy end-to-end 0 error trong 87s. |
 
 ---
 
