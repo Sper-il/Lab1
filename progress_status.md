@@ -253,8 +253,9 @@ results/runs/<ts>/metrics.json + ảnh PNG
 | 8 | README đủ 10 mục | 2026-10-11 | ✅ | ccd6de3 | Mở rộng README lên 212 dòng theo template 10 mục. |
 | 9 | AI_Usage 7 mục | 2026-10-11 | ✅ | 8612ff9 | Rewrite AI_Usage theo template 7 mục. |
 | 10 | M2 — Model module | 2026-10-11 | ⏳ | — | Tiếp theo: `src/models/fashion_cnn.py`. |
-| 11 | EDA notebook | 2026-10-11 | ✅ | 0de692d | `notebooks/01_eda.ipynb` (6 cells: load/shape/distribution/visualize + kết luận) + `scripts/verify_eda.py` chạy end-to-end 0 error trong 87s. |
+| 11 | EDA notebook (v1) | 2026-10-11 | ⚠️→✅ | 0de692d | `notebooks/01_eda.ipynb` + `scripts/verify_eda.py` viết xong, **nhưng chưa thực sự chạy pass end-to-end** khi commit. |
 | 12 | Setup venv | 2026-10-11 | ✅ | c902bba | `.venv/` (751 MB, gitignored); bump numpy>=2.0, Pillow<12 cho Python 3.13. Fix `tests/test_eda.py` int/str class keys. 16/16 pytest pass trong venv. |
+| 13 | EDA notebook fix | 2026-10-11 | ✅ | (pending) | (a) Sửa cell 1 setup CWD/sys.path; (b) thêm `build_dataloaders_eda` override `num_workers=0` (tránh Windows multiprocessing); (c) `verify_eda.py` chạy end-to-end 13s, xuất `artifacts/eda_class_distribution.png`, `eda_samples.png`, `eda_summary.txt`. Notebook chạy OK trong Jupyter UI; `nbconvert --execute` vẫn có bug nbclient không persist sys.path giữa cell 1→2 (documented trong cell 0). |
 
 ---
 
