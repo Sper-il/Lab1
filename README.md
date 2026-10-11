@@ -93,12 +93,13 @@ lab1/
 ├── docs/
 │   ├── architecture.md            # Kiến trúc tổng quan
 │   ├── data-flow.md               # Luồng dữ liệu chi tiết
-│   └── api.md                     # API nội bộ từng hàm
+│   ├── api.md                     # API nội bộ từng hàm
+│   ├── AGENTS.md                      # Working rules cho AI agent
+│   └── AI_Usage.md                    # 7 mục theo template
+│
 ├── results/runs/<ts>/             # Output mỗi lần chạy (M3+)
 ├── progress_status.md             # Single source of truth
 ├── CHANGELOG.md                   # Model/dataset version
-├── AGENTS.md                      # Working rules cho AI agent
-├── AI_Usage.md                    # 7 mục theo template
 ├── README.md                      # File này (10 mục chuẩn)
 ├── requirements.txt
 └── .gitignore
