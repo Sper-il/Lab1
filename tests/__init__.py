@@ -1,1 +1,0 @@
-"""Tests cho project FashionMNIST."""
