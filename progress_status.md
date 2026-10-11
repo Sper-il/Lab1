@@ -212,19 +212,19 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 ---
 
-## Active Module: M0 — Scaffold project
+## Active Module: M1 — Data module
 
-- **Describe** — Tạo folder structure, `.gitignore`, `requirements.txt`, các file `__init__.py` rỗng. Chưa code logic.
-- **Goal / purpose** — Có khung project sạch, reproducible, sẵn sàng cho M1.
-- **Pipeline** — (chưa có pipeline ở module này).
+- **Describe** — `src/data/dataset.py` cung cấp hàm `build_dataloaders(config)` trả về dict gồm `train`, `val`, `test` DataLoaders. Tải FashionMNIST, áp `ToTensor` + `Normalize`, chia train/val theo `val_split`.
+- **Goal / purpose** — Có data pipeline sẵn sàng cho M2 (model) và M3 (training). Download một lần vào `data/raw/`, cache để lần sau không tải lại.
+- **Pipeline** — `torchvision.datasets.FashionMNIST → ToTensor → Normalize(mean, std) → random_split → DataLoader`.
 - **How / experiment plan (sub-tasks)**
-  - [ ] Tạo `src/{data,models,training,evaluation,visualization}/` với `__init__.py`.
-  - [ ] Tạo `tests/`, `configs/`, `results/runs/`, `notebooks/`, `docs/`.
-  - [ ] Viết `requirements.txt` (torch, torchvision, matplotlib, numpy, pyyaml, pytest).
-  - [ ] Viết `configs/baseline.yaml` (lr, batch_size, epochs, optimizer, seed).
-- **Status** — Describe ✅ / Generate ✅ / Review ⏳ / Run ⏳ / Test ⏳ / Refactor ⏳ / Commit ⏳
+  - [ ] Viết `src/data/dataset.py`: `build_dataloaders(config: dict) -> {"train", "val", "test"}`.
+  - [ ] Hỗ trợ `seed` để split reproducible.
+  - [ ] In shape 1 batch để verify.
+  - [ ] Viết `tests/test_dataset.py`: assert batch shape `[B, 1, 28, 28]`, label `int64`, range pixel đúng sau normalize.
+- **Status** — Describe ⏳ / Generate ⏳ / Review ⏳ / Run ⏳ / Test ⏳ / Refactor ⏳ / Commit ⏳
 - **Last run** — chưa có.
-- **DoD checklist** — Folder đúng cấu trúc, file YAML hợp lệ, requirements cài được trên máy sạch.
+- **DoD checklist** — Loader chạy được trên máy sạch, test pass, in được shape, val split reproducible.
 
 ---
 
@@ -232,8 +232,9 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 | # | Module | Ngày | Status | Commit | Ghi chú |
 |---|--------|------|--------|--------|---------|
-| 0 | Define + Design | 2026-10-11 | ✅ | — | Phase 1 + Phase 2 xong, scaffold folder. |
-| 1 | M0 — Scaffold | 2026-10-11 | ⏳ | — | Tạo folder + file rỗng. |
+| 0 | Define + Design | 2026-10-11 | ✅ | — | Phase 1 + Phase 2 xong. |
+| 1 | M0 — Scaffold | 2026-10-11 | ✅ | 599d20f | 27 file: folder + requirements + config + 6 __init__.py + docs stub. |
+| 2 | M1 — Data module | 2026-10-11 | ⏳ | — | Tiếp theo: src/data/dataset.py. |
 
 ---
 
