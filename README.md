@@ -96,8 +96,6 @@ e:\lab1/
 │   ├── eda_visualization.log
 │   ├── final_run.log
 │   └── final_eda.log
-├── run_phase1_pipeline.py     # Run Phase 1 pipeline
-├── run_eda_visualization.py   # Run EDA visualization
 ├── main.py                    # Main training script (Phase 2+)
 ├── requirements.txt           # Python dependencies
 ├── progress_status.md         # (root) Project status
