@@ -1,16 +1,43 @@
-# Practice 1 — PyTorch FashionMNIST Classification
+# Requirements - FashionMNIST PyTorch Project
 
-# Core
-torch>=2.0,<3.0
-torchvision>=0.15,<1.0
-numpy>=2.0,<3.0          # Python 3.13 cần numpy 2.x (1.x chỉ có wheel <=3.12)
-Pillow>=10.0,<12.0       # nới Pillow để lấy bản có wheel cho Py 3.13
+# Core Dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Data Processing
+numpy>=1.21.0
+pandas>=1.3.0
+pillow>=9.0.0
 
 # Visualization
-matplotlib>=3.7,<4.0
+matplotlib>=3.5.0
+seaborn>=0.11.0
 
-# Config
-pyyaml>=6.0,<7.0
+# Machine Learning
+scikit-learn>=1.0.0
 
-# Testing
-pytest>=7.0,<9.0
+# Progress & Logging
+tqdm>=4.62.0
+loguru>=0.6.0
+
+# Jupyter (optional)
+jupyter>=1.0.0
+ipykernel>=6.0.0
+notebook>=6.4.0
+
+# Experiment Tracking (optional)
+tensorboard>=2.10.0
+# wandb>=0.13.0  # Uncomment if using Weights & Biases
+
+# Development & Testing
+pytest>=7.0.0
+black>=22.0.0
+flake8>=4.0.0
+isort>=5.10.0
+
+# Code Quality
+mypy>=0.950.0
+pylint>=2.14.0
+
+# Export
+joblib>=1.1.0

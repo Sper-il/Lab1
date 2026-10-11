@@ -1,0 +1,13 @@
+# Model configuration - placeholder
+model:
+  name: baseline_mlp
+  input_size: 784
+  hidden_sizes: [256, 128]
+  num_classes: 10
+  dropout: 0.2
+
+training:
+  epochs: 10
+  batch_size: 64
+  learning_rate: 0.001
+  optimizer: adam

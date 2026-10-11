@@ -1,43 +1,104 @@
-# Python
+# FashionMNIST Project - .gitignore
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
+
+# Distribution / packaging
 .Python
-.venv/
-venv/
-env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
+*.swo
+*~
 
-# Data (FashionMNIST tải về sẽ được cache tại đây, không commit)
-data/raw/
-data/processed/
-data/splits/
-
-# PyTorch
+# Project specific
 *.pt
 *.pth
-*.onnx
 *.ckpt
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Logs & kết quả
-*.log
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+logs/*.log
+results/runs/*
+!results/runs/.gitkeep
 logs/
-results/runs/*/checkpoints/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Secrets
-.env
-*.key
-secrets.yaml
+# Project files
+*.csv
+*.npy
+*.npz

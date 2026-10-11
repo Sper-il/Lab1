@@ -1,153 +1,289 @@
-"""Build DataLoader cho 3 tập train/val/test từ cấu trúc thư mục .png đã split.
-
-Mỗi tập dùng transform riêng để:
-  - tránh data leakage (split đã xảy ra trước, transform là bước sau)
-  - cho phép augmentation khác nhau giữa train vs val/test
 """
+FashionMNIST Dataset Module
+============================
+Handles loading and transformation of FashionMNIST dataset.
 
-from __future__ import annotations
+Fashion Categories:
+    0: T-shirt/top
+    1: Trouser
+    2: Pullover
+    3: Dress
+    4: Coat
+    5: Sandal
+    6: Shirt
+    7: Sneaker
+    8: Bag
+    9: Ankle boot
+"""
 
 import logging
 from pathlib import Path
-from typing import Dict
+from typing import Optional, Tuple, Callable
 
 import torch
-import yaml
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader, Dataset
+from torchvision import datasets, transforms
+from torchvision.transforms import Compose
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Mean/std thực nghiệm của FashionMNIST (tính trên toàn bộ training set).
-# Dùng cố định cho cả 3 tập vì stats chỉ nên tính trên train,
-# nhưng ở đây ta dùng giá trị chuẩn đã công bố để tránh phải load toàn bộ ảnh để tính.
-FASHION_MNIST_MEAN = 0.2860
-FASHION_MNIST_STD = 0.3530
+
+# Dataset configuration
+DATASET_CONFIG = {
+    "name": "FashionMNIST",
+    "num_classes": 10,
+    "image_size": (28, 28),
+    "channels": 1,
+    "train_size": 60000,
+    "test_size": 10000,
+}
+
+# Fashion item class names
+CLASS_NAMES = [
+    "T-shirt/top",
+    "Trouser",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt",
+    "Sneaker",
+    "Bag",
+    "Ankle boot",
+]
 
 
-def _load_config(config_path: str | Path) -> dict:
-    """Đọc file YAML, raise nếu không tồn tại."""
-    config_path = Path(config_path)
-    if not config_path.exists():
-        raise FileNotFoundError(f"Không tìm thấy config: {config_path}")
-    with open(config_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+class TransformBuilder:
+    """Builder class for creating data transforms."""
+    
+    @staticmethod
+    def get_train_transforms(augment: bool = False) -> Compose:
+        """
+        Get training transforms with optional augmentation.
+        
+        Args:
+            augment: Whether to apply data augmentation
+            
+        Returns:
+            Composed transforms for training data
+        """
+        if augment:
+            return transforms.Compose([
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomRotation(degrees=10),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.2860],
+                    std=[0.3530]
+                ),
+            ])
+        
+        return transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.2860],  # FashionMNIST mean
+                std=[0.3530]     # FashionMNIST std
+            ),
+        ])
+    
+    @staticmethod
+    def get_test_transforms() -> Compose:
+        """
+        Get transforms for test/validation data.
+        
+        Returns:
+            Composed transforms for test data
+        """
+        return transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(
+                mean=[0.2860],
+                std=[0.3530]
+            ),
+        ])
 
 
-def _build_train_transform(mean: float, std: float) -> transforms.Compose:
-    """Transform cho train — hiện tại chỉ ToTensor + Normalize (baseline).
-
-    Augmentation phức tạp (RandomHorizontalFlip, RandomCrop) có thể thêm ở M6 experiment.
+def load_fashion_mnist(
+    data_dir: str = "./data/raw",
+    train: bool = True,
+    transform: Optional[Compose] = None,
+    download: bool = True
+) -> Dataset:
     """
-    return transforms.Compose([
-        # Ảnh .png grayscale 28x28 → Tensor [1, 28, 28] giá trị [0, 1]
-        transforms.Grayscale(num_output_channels=1),  # đảm bảo 1 channel dù PNG lưu thế nào
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[mean], std=[std]),
-    ])
+    Load FashionMNIST dataset.
+    
+    Args:
+        data_dir: Directory to store/load dataset
+        train: Whether to load training or test set
+        transform: Transforms to apply to images
+        download: Whether to download if not present
+        
+    Returns:
+        FashionMNIST dataset object
+    """
+    if transform is None:
+        transform = TransformBuilder.get_test_transforms()
+    
+    logger.info(f"Loading {'training' if train else 'test'} dataset from {data_dir}")
+    
+    dataset = datasets.FashionMNIST(
+        root=data_dir,
+        train=train,
+        transform=transform,
+        download=download
+    )
+    
+    logger.info(f"Loaded {len(dataset)} samples")
+    return dataset
 
 
-def _build_eval_transform(mean: float, std: float) -> transforms.Compose:
-    """Transform cho val/test — KHÔNG augmentation, chỉ ToTensor + Normalize."""
-    return transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[mean], std=[std]),
-    ])
-
-
-def _make_loader(
-    dataset: ImageFolder,
-    batch_size: int,
-    shuffle: bool,
-    num_workers: int,
-    pin_memory: bool = False,
+def create_data_loader(
+    dataset: Dataset,
+    batch_size: int = 64,
+    shuffle: bool = True,
+    num_workers: int = 0,
+    pin_memory: bool = True
 ) -> DataLoader:
-    """Tạo DataLoader với cấu hình nhất quán."""
-    return DataLoader(
+    """
+    Create a DataLoader from a dataset.
+    
+    Args:
+        dataset: PyTorch dataset
+        batch_size: Number of samples per batch
+        shuffle: Whether to shuffle data
+        num_workers: Number of worker processes
+        pin_memory: Whether to pin memory for faster GPU transfer
+        
+    Returns:
+        DataLoader object
+    """
+    logger.info(f"Creating DataLoader with batch_size={batch_size}, shuffle={shuffle}")
+    
+    loader = DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=pin_memory,
-        drop_last=False,
+        persistent_workers=num_workers > 0,
     )
+    
+    return loader
 
 
-def build_dataloaders(
-    config_path: str | Path = "configs/baseline.yaml",
-) -> Dict[str, DataLoader]:
-    """Đọc config, build 3 DataLoader từ cấu trúc thư mục .png.
-
-    Args:
-        config_path: đường dẫn tới file YAML config.
-
-    Returns:
-        Dict với key "train", "val", "test" → DataLoader.
+def get_fashion_mnist_loaders(
+    data_dir: str = "./data/raw",
+    batch_size: int = 64,
+    augment_train: bool = False,
+    num_workers: int = 0,
+    val_split: float = 0.1
+) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
-    config = _load_config(config_path)
-
-    data_cfg = config["data"]
-    root = Path(data_cfg["root"])
-    batch_size = int(data_cfg["batch_size"])
-    num_workers = int(data_cfg["num_workers"])
-    mean = float(data_cfg.get("mean", FASHION_MNIST_MEAN))
-    std = float(data_cfg.get("std", FASHION_MNIST_STD))
-
-    # Kiểm tra split đã chạy chưa
-    for split in ("train", "val", "test"):
-        split_dir = root / split
-        if not split_dir.exists() or not any(split_dir.rglob("*.png")):
-            raise FileNotFoundError(
-                f"Không tìm thấy ảnh .png trong {split_dir}. "
-                f"Chạy trước: python -m src.data.split --root {root}"
-            )
-
-    # Build ImageFolder cho mỗi tập với transform riêng
-    train_ds = ImageFolder(
-        root=str(root / "train"),
-        transform=_build_train_transform(mean, std),
+    Get train, validation, and test DataLoaders.
+    
+    Args:
+        data_dir: Directory to store/load dataset
+        batch_size: Batch size for all loaders
+        augment_train: Whether to augment training data
+        num_workers: Number of worker processes
+        val_split: Fraction of training data for validation
+        
+    Returns:
+        Tuple of (train_loader, val_loader, test_loader)
+    """
+    # Create transforms
+    train_transform = TransformBuilder.get_train_transforms(augment=augment_train)
+    test_transform = TransformBuilder.get_test_transforms()
+    
+    # Load training dataset
+    train_full = load_fashion_mnist(
+        data_dir=data_dir,
+        train=True,
+        transform=train_transform,
+        download=True
     )
-    val_ds = ImageFolder(
-        root=str(root / "val"),
-        transform=_build_eval_transform(mean, std),
+    
+    # Split training data
+    total_train = len(train_full)
+    val_size = int(total_train * val_split)
+    train_size = total_train - val_size
+    
+    logger.info(f"Splitting training data: train={train_size}, val={val_size}")
+    
+    train_subset, val_subset = torch.utils.data.random_split(
+        train_full, 
+        [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)
     )
-    test_ds = ImageFolder(
-        root=str(root / "test"),
-        transform=_build_eval_transform(mean, std),
+    
+    # Load test dataset
+    test_dataset = load_fashion_mnist(
+        data_dir=data_dir,
+        train=False,
+        transform=test_transform,
+        download=True
     )
-
-    logger.info(
-        "Dataset sizes — train: %d, val: %d, test: %d, classes: %d",
-        len(train_ds), len(val_ds), len(test_ds), len(train_ds.classes),
+    
+    # Create data loaders
+    train_loader = create_data_loader(
+        train_subset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=num_workers
     )
+    
+    val_loader = create_data_loader(
+        val_subset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers
+    )
+    
+    test_loader = create_data_loader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=num_workers
+    )
+    
+    logger.info("Data loaders created successfully")
+    
+    return train_loader, val_loader, test_loader
 
-    # pin_memory chỉ hữu ích khi có CUDA; bật auto để tránh warning trên CPU.
-    use_pin_memory = torch.cuda.is_available()
 
-    return {
-        "train": _make_loader(train_ds, batch_size, shuffle=True,
-                              num_workers=num_workers, pin_memory=use_pin_memory),
-        "val": _make_loader(val_ds, batch_size, shuffle=False,
-                            num_workers=num_workers, pin_memory=use_pin_memory),
-        "test": _make_loader(test_ds, batch_size, shuffle=False,
-                             num_workers=num_workers, pin_memory=use_pin_memory),
-    }
+def get_class_name(label: int) -> str:
+    """
+    Get class name for a label.
+    
+    Args:
+        label: Class label (0-9)
+        
+    Returns:
+        Human-readable class name
+    """
+    return CLASS_NAMES[label]
 
 
-def summarize(loader: DataLoader, name: str) -> None:
-    """In thông tin 1 loader: số batch, shape, dtype, range pixel — để verify nhanh."""
-    ds = loader.dataset
-    print(f"[{name}]")
-    print(f"  dataset size: {len(ds)}")
-    print(f"  num batches:  {len(loader)}")
-    print(f"  classes:      {ds.classes}")
-
-    # Lấy 1 batch đầu tiên để in shape
-    images, labels = next(iter(loader))
-    print(f"  batch shape:  images={tuple(images.shape)}, labels={tuple(labels.shape)}")
-    print(f"  dtypes:       images={images.dtype}, labels={labels.dtype}")
-    print(f"  pixel range:  min={images.min().item():.4f}, max={images.max().item():.4f}")
-    print(f"  label range:  min={labels.min().item()}, max={labels.max().item()}")
-    print()
+if __name__ == "__main__":
+    # Test data loading
+    logger.info("Testing FashionMNIST data loading...")
+    
+    train_loader, val_loader, test_loader = get_fashion_mnist_loaders(
+        batch_size=64,
+        augment_train=False
+    )
+    
+    # Get a batch
+    images, labels = next(iter(train_loader))
+    
+    logger.info(f"Batch shape: images={images.shape}, labels={labels.shape}")
+    logger.info(f"Image dtype: {images.dtype}, range: [{images.min():.3f}, {images.max():.3f}]")
+    
+    # Test class names
+    for i in range(10):
+        logger.info(f"Label {i}: {get_class_name(i)}")
+    
+    logger.info("Dataset loading test completed successfully!")

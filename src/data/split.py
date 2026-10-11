@@ -1,152 +1,402 @@
-"""Split FashionMNIST ra file .png trên disk theo cấu trúc thư mục.
+"""
+Data Split Module
+=================
+Handles train/validation/test data splitting.
 
-CHẠY 1 LẦN trước khi dùng data. Idempotent: nếu đã có đủ file thì bỏ qua.
-
-Cấu trúc output:
-    <root>/train/<class_id>/<idx>.png
-    <root>/val/<class_id>/<idx>.png
-    <root>/test/<class_id>/<idx>.png
+Split Strategy:
+- Training: 80% of original training data
+- Validation: 10% of original training data  
+- Test: 100% of original test data
 """
 
-from __future__ import annotations
-
-import argparse
 import logging
-import random
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Optional, List
+from dataclasses import dataclass
 
-from torchvision.datasets import FashionMNIST
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, Dataset, Subset
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Tên lớp FashionMNIST — dùng để đặt tên file cho dễ debug
-CLASS_NAMES = [
-    "T-shirt_top",
-    "Trouser",
-    "Pullover",
-    "Dress",
-    "Coat",
-    "Sandal",
-    "Shirt",
-    "Sneaker",
-    "Bag",
-    "Ankle_boot",
-]
+
+@dataclass
+class SplitConfig:
+    """Configuration for data splitting."""
+    train_ratio: float = 0.8
+    val_ratio: float = 0.1
+    test_ratio: float = 0.1
+    random_seed: int = 42
+    
+    def __post_init__(self):
+        """Validate split ratios."""
+        total = self.train_ratio + self.val_ratio + self.test_ratio
+        if not np.isclose(total, 1.0):
+            raise ValueError(f"Split ratios must sum to 1.0, got {total}")
 
 
-def _set_seed(seed: int) -> None:
-    """Đặt seed cho Python random để split reproducible."""
-    random.seed(seed)
+class DataSplitter:
+    """Handles dataset splitting operations."""
+    
+    def __init__(self, config: Optional[SplitConfig] = None):
+        """
+        Initialize data splitter.
+        
+        Args:
+            config: Split configuration
+        """
+        self.config = config or SplitConfig()
+        self.generator = torch.Generator().manual_seed(self.config.random_seed)
+        
+        logger.info(f"DataSplitter initialized with config: {self.config}")
+    
+    def split_dataset(
+        self, 
+        dataset: Dataset,
+        stratify: bool = False
+    ) -> Tuple[Subset, Subset, Subset]:
+        """
+        Split dataset into train/val/test sets.
+        
+        Args:
+            dataset: Full dataset to split
+            stratify: Whether to use stratified splitting
+            
+        Returns:
+            Tuple of (train_subset, val_subset, test_subset)
+        """
+        n_samples = len(dataset)
+        n_train = int(n_samples * self.config.train_ratio)
+        n_val = int(n_samples * self.config.val_ratio)
+        # n_test = remaining
+        
+        indices = list(range(n_samples))
+        
+        if stratify:
+            # Stratified splitting by labels
+            indices = self._stratified_split(dataset, indices)
+        
+        # Shuffle indices
+        shuffled = indices.copy()
+        np.random.seed(self.config.random_seed)
+        np.random.shuffle(shuffled)
+        
+        # Split indices
+        train_idx = shuffled[:n_train]
+        val_idx = shuffled[n_train:n_train + n_val]
+        test_idx = shuffled[n_train + n_val:]
+        
+        # Create subsets
+        train_subset = Subset(dataset, train_idx)
+        val_subset = Subset(dataset, val_idx)
+        test_subset = Subset(dataset, test_idx)
+        
+        logger.info(f"Dataset split: train={len(train_subset)}, "
+                    f"val={len(val_subset)}, test={len(test_subset)}")
+        
+        return train_subset, val_subset, test_subset
+    
+    def _stratified_split(
+        self, 
+        dataset: Dataset, 
+        indices: List[int]
+    ) -> List[int]:
+        """
+        Perform stratified splitting to maintain class distribution.
+        
+        Args:
+            dataset: Dataset with labels
+            indices: List of indices to split
+            
+        Returns:
+            Stratified shuffled indices
+        """
+        # Group indices by label
+        label_to_indices = {}
+        for idx in indices:
+            try:
+                _, label = dataset[idx]
+                if isinstance(label, torch.Tensor):
+                    label = label.item()
+                if label not in label_to_indices:
+                    label_to_indices[label] = []
+                label_to_indices[label].append(idx)
+            except Exception as e:
+                logger.warning(f"Error getting label for index {idx}: {e}")
+        
+        # Shuffle within each class
+        for label in label_to_indices:
+            np.random.shuffle(label_to_indices[label])
+        
+        # Distribute samples proportionally
+        train_ratio = self.config.train_ratio
+        val_ratio = self.config.val_ratio
+        
+        stratified_indices = []
+        
+        for label, idx_list in label_to_indices.items():
+            n = len(idx_list)
+            n_train = int(n * train_ratio)
+            n_val = int(n * val_ratio)
+            
+            stratified_indices.extend(idx_list[:n_train])
+            stratified_indices.extend(idx_list[n_train:n_train + n_val])
+            stratified_indices.extend(idx_list[n_train + n_val:])
+        
+        return stratified_indices
+    
+    def create_split_from_existing(
+        self,
+        train_dataset: Dataset,
+        val_size: float = 0.1,
+        stratify: bool = True
+    ) -> Tuple[Subset, Subset]:
+        """
+        Create validation split from existing training dataset.
+        
+        Args:
+            train_dataset: Full training dataset
+            val_size: Fraction of data for validation
+            stratify: Whether to use stratified splitting
+            
+        Returns:
+            Tuple of (train_subset, val_subset)
+        """
+        n_total = len(train_dataset)
+        n_val = int(n_total * val_size)
+        n_train = n_total - n_val
+        
+        indices = list(range(n_total))
+        
+        if stratify:
+            indices = self._stratified_split(train_dataset, indices)
+        else:
+            np.random.seed(self.config.random_seed)
+            np.random.shuffle(indices)
+        
+        train_idx = indices[:n_train]
+        val_idx = indices[n_train:]
+        
+        train_subset = Subset(train_dataset, train_idx)
+        val_subset = Subset(train_dataset, val_idx)
+        
+        logger.info(f"Existing split: train={len(train_subset)}, val={len(val_subset)}")
+        
+        return train_subset, val_subset
 
 
-def _expected_counts(total: int, val_split: int) -> Tuple[int, int]:
-    """Tính số mẫu train/val từ tổng train gốc, đảm bảo không âm và không vượt tổng."""
-    if val_split < 0:
-        raise ValueError(f"val_split phải >= 0, nhận {val_split}")
-    if val_split > total:
-        raise ValueError(f"val_split={val_split} vượt quá total={total}")
-    return total - val_split, val_split
+class DataSplitManager:
+    """Manages data splits and loaders."""
+    
+    def __init__(self, config: Optional[SplitConfig] = None):
+        """
+        Initialize split manager.
+        
+        Args:
+            config: Split configuration
+        """
+        self.config = config or SplitConfig()
+        self.splitter = DataSplitter(self.config)
+        
+        self.train_subset: Optional[Subset] = None
+        self.val_subset: Optional[Subset] = None
+        self.test_subset: Optional[Subset] = None
+        
+        logger.info("DataSplitManager initialized")
+    
+    def load_and_split(
+        self,
+        data_dir: str = "./data/raw",
+        train_transform=None,
+        test_transform=None,
+        stratify: bool = True
+    ) -> Tuple[Subset, Subset, Dataset]:
+        """
+        Load FashionMNIST and split into train/val/test.
+        
+        Args:
+            data_dir: Directory for dataset
+            train_transform: Transform for training data
+            test_transform: Transform for test data
+            stratify: Whether to use stratified splitting
+            
+        Returns:
+            Tuple of (train_subset, val_subset, test_dataset)
+        """
+        from dataset import load_fashion_mnist
+        
+        logger.info("Loading and splitting FashionMNIST...")
+        
+        # Load full training dataset
+        train_full = load_fashion_mnist(
+            data_dir=data_dir,
+            train=True,
+            transform=train_transform,
+            download=True
+        )
+        
+        # Split training into train/val
+        self.train_subset, self.val_subset = self.splitter.create_split_from_existing(
+            train_full,
+            val_size=self.config.val_ratio / (self.config.train_ratio + self.config.val_ratio),
+            stratify=stratify
+        )
+        
+        # Load test dataset
+        self.test_subset = load_fashion_mnist(
+            data_dir=data_dir,
+            train=False,
+            transform=test_transform,
+            download=True
+        )
+        
+        logger.info(f"Data split complete: "
+                    f"train={len(self.train_subset)}, "
+                    f"val={len(self.val_subset)}, "
+                    f"test={len(self.test_subset)}")
+        
+        return self.train_subset, self.val_subset, self.test_subset
+    
+    def create_loaders(
+        self,
+        batch_size: int = 64,
+        num_workers: int = 0
+    ) -> Tuple[DataLoader, DataLoader, DataLoader]:
+        """
+        Create DataLoaders for all splits.
+        
+        Args:
+            batch_size: Batch size for all loaders
+            num_workers: Number of worker processes
+            
+        Returns:
+            Tuple of (train_loader, val_loader, test_loader)
+        """
+        from dataset import create_data_loader
+        
+        if self.train_subset is None or self.test_subset is None:
+            raise ValueError("Must call load_and_split before creating loaders")
+        
+        train_loader = create_data_loader(
+            self.train_subset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers
+        )
+        
+        val_loader = create_data_loader(
+            self.val_subset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
+        
+        test_loader = create_data_loader(
+            self.test_subset,
+            batch_size=batch_size,
+            shuffle=False,
+            num_workers=num_workers
+        )
+        
+        logger.info("Data loaders created successfully")
+        
+        return train_loader, val_loader, test_loader
+    
+    def save_split_info(self, output_path: str = "data/splits/split_info.txt"):
+        """
+        Save split information to file.
+        
+        Args:
+            output_path: Path to save split info
+        """
+        if self.train_subset is None:
+            raise ValueError("Must call load_and_split before saving split info")
+        
+        path = Path(output_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(path, 'w') as f:
+            f.write("FashionMNIST Data Split Information\n")
+            f.write("=" * 40 + "\n\n")
+            f.write(f"Random Seed: {self.config.random_seed}\n")
+            f.write(f"Train Ratio: {self.config.train_ratio}\n")
+            f.write(f"Val Ratio: {self.config.val_ratio}\n")
+            f.write(f"Test Ratio: {self.config.test_ratio}\n\n")
+            f.write(f"Train Size: {len(self.train_subset)}\n")
+            f.write(f"Val Size: {len(self.val_subset)}\n")
+            f.write(f"Test Size: {len(self.test_subset)}\n")
+        
+        logger.info(f"Split info saved to {output_path}")
 
 
-def _save_split(dataset, indices, split_name: str, root: Path) -> None:
-    """Lưu một tập (train/val/test) ra đĩa theo cấu trúc thư mục.
-
-    `dataset` là FashionMNIST gốc, gọi `dataset[i]` trả về (PIL Image, int).
+def split_pipeline(
+    data_dir: str = "./data/raw",
+    batch_size: int = 64,
+    val_ratio: float = 0.1,
+    num_workers: int = 0
+) -> Tuple[DataLoader, DataLoader, DataLoader, SplitConfig]:
     """
-    split_dir = root / split_name
-    for original_idx in indices:
-        img, label = dataset[original_idx]  # PIL Image grayscale 28x28, int
-        label = int(label)
-
-        # Tên file có class_name để dễ debug khi mở folder bằng File Explorer
-        class_name = CLASS_NAMES[label]
-        filename = f"{class_name}_{original_idx:06d}.png"
-        out_path = split_dir / str(label) / filename
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-
-        if not out_path.exists():
-            img.save(out_path, format="PNG")
-
-
-def split_fashionmnist_to_disk(
-    root: str | Path,
-    val_split: int = 10000,
-    seed: int = 42,
-) -> Path:
-    """Tải FashionMNIST, chia train/val/test, lưu tất cả ra file .png trên disk.
-
+    Complete data splitting pipeline.
+    
     Args:
-        root: thư mục gốc, sẽ chứa 3 subfolder train/val/test.
-        val_split: số mẫu lấy từ train gốc làm validation.
-        seed: seed cho random split, đảm bảo reproducible.
-
+        data_dir: Directory for dataset
+        batch_size: Batch size for loaders
+        val_ratio: Validation split ratio
+        num_workers: Number of workers
+        
     Returns:
-        Đường dẫn root sau khi ghi xong.
+        Tuple of (train_loader, val_loader, test_loader, config)
     """
-    root = Path(root)
-    root.mkdir(parents=True, exist_ok=True)
-
-    train_dir = root / "train"
-    val_dir = root / "val"
-    test_dir = root / "test"
-
-    # Idempotent: nếu 3 folder đều có file thì bỏ qua
-    if train_dir.exists() and val_dir.exists() and test_dir.exists():
-        n_train = sum(1 for _ in train_dir.rglob("*.png"))
-        n_val = sum(1 for _ in val_dir.rglob("*.png"))
-        n_test = sum(1 for _ in test_dir.rglob("*.png"))
-        if n_train > 0 and n_val > 0 and n_test > 0:
-            logger.info(
-                "Đã có sẵn %d train / %d val / %d test .png tại %s — bỏ qua.",
-                n_train, n_val, n_test, root,
-            )
-            return root
-
-    logger.info("Tải FashionMNIST từ torchvision (lần đầu có thể chậm)...")
-    # download=True: tải về data gốc của torchvision (cache nội bộ)
-    # Chỉ cần 1 lần, sau đó dùng lại từ cache.
-    train_set = FashionMNIST(root=str(root / "_torchvision_cache"), train=True, download=True)
-    test_set = FashionMNIST(root=str(root / "_torchvision_cache"), train=False, download=True)
-
-    # Tách train / val reproducible
-    _set_seed(seed)
-    n_train_keep, n_val = _expected_counts(len(train_set), val_split)
-    indices = list(range(len(train_set)))
-    random.shuffle(indices)
-    train_indices = sorted(indices[:n_train_keep])
-    val_indices = sorted(indices[n_train_keep:])
-
-    logger.info("Ghi %d ảnh train ra %s ...", len(train_indices), train_dir)
-    _save_split(train_set, train_indices, "train", root)
-
-    logger.info("Ghi %d ảnh val ra %s ...", len(val_indices), val_dir)
-    _save_split(train_set, val_indices, "val", root)
-
-    logger.info("Ghi %d ảnh test ra %s ...", len(test_set), test_dir)
-    test_indices = list(range(len(test_set)))
-    _save_split(test_set, test_indices, "test", root)
-
-    logger.info("Xong. Cấu trúc tại %s:", root)
-    for split in ("train", "val", "test"):
-        n_files = sum(1 for _ in (root / split).rglob("*.png"))
-        logger.info("  %s/: %d ảnh .png", split, n_files)
-
-    return root
-
-
-def main() -> None:
-    """CLI: python -m src.data.split --root data/raw --val-split 10000 --seed 42"""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(message)s")
-
-    parser = argparse.ArgumentParser(description="Split FashionMNIST ra .png trên disk.")
-    parser.add_argument("--root", type=str, default="data/raw", help="Thư mục output.")
-    parser.add_argument("--val-split", type=int, default=10000, help="Số mẫu validation.")
-    parser.add_argument("--seed", type=int, default=42, help="Random seed.")
-    args = parser.parse_args()
-
-    split_fashionmnist_to_disk(args.root, args.val_split, args.seed)
+    logger.info("Starting data split pipeline...")
+    
+    # Create config
+    config = SplitConfig(
+        train_ratio=1.0 - val_ratio,
+        val_ratio=val_ratio,
+        test_ratio=0.0  # Test set is separate
+    )
+    
+    # Create manager
+    manager = DataSplitManager(config)
+    
+    # Load and split
+    manager.load_and_split(data_dir=data_dir, stratify=True)
+    
+    # Create loaders
+    train_loader, val_loader, test_loader = manager.create_loaders(
+        batch_size=batch_size,
+        num_workers=num_workers
+    )
+    
+    # Save split info
+    manager.save_split_info()
+    
+    logger.info("Data split pipeline complete")
+    
+    return train_loader, val_loader, test_loader, config
 
 
 if __name__ == "__main__":
-    main()
+    # Test split module
+    from dataset import TransformBuilder
+    
+    logger.info("Testing data split module...")
+    
+    train_loader, val_loader, test_loader = split_pipeline(
+        data_dir="./data/raw",
+        batch_size=64,
+        val_ratio=0.1
+    )
+    
+    print(f"\nTrain batches: {len(train_loader)}")
+    print(f"Val batches: {len(val_loader)}")
+    print(f"Test batches: {len(test_loader)}")
+    
+    # Get sample batch
+    images, labels = next(iter(train_loader))
+    print(f"\nSample batch: images={images.shape}, labels={labels.shape}")
+    
+    logger.info("Data split test completed successfully!")
