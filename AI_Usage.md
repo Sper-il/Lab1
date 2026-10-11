@@ -1,111 +1,164 @@
-# AI Usage — ghi nhận việc sử dụng AI
+# AI Usage
 
-> **Mục đích:** Minh bạch việc dùng công cụ AI trong quá trình làm Practice 1.
-> Cập nhật liên tục theo tiến độ project.
+> Hồ sơ trung thực về cách các công cụ AI được sử dụng trong project này.
+> Format theo template 7 mục trong `.cursor/skills/ai-fusion-workflow/templates/ai-usage.md`.
+> Cập nhật lần cuối: 2026-10-11 18:13.
 
-## Tóm tắt
+## 1. Tools Used
 
-| Mục | Giá trị |
-|-----|---------|
-| **Công cụ chính** | Cursor IDE với model **Claude Sonnet 4.5** (`claude-sonnet-4-5`) |
-| **Phạm vi sử dụng** | Generate boilerplate code, self-review, debug, viết docs, planning |
-| **Quyết định thiết kế** | Do tác giả đưa ra, AI hỗ trợ đánh giá ưu/nhược |
-| **Kiểm chứng output** | Tất cả code chạy thực tế + pytest; không commit code không pass test |
-| **Lưu ý** | AI đã giúp lên đến **~40%** thời gian làm bài (estimate từ số commit) |
+| Vai trò | Tool / Model | Phiên bản | Khi nào dùng |
+|---------|--------------|-----------|--------------|
+| **Code generation** | Cursor IDE + Claude Sonnet 4.5 | `claude-sonnet-4-5` | Scaffold module, viết boilerplate (M0, M1) |
+| **Documentation** | Cursor IDE + Claude Sonnet 4.5 | `claude-sonnet-4-5` | Điền docs/architecture, data-flow, api; README; AI_Usage |
+| **Debugging** | Cursor IDE + Claude Sonnet 4.5 | `claude-sonnet-4-5` | Phân tích pytest fail, đề xuất root cause |
+| **Research** | (không dùng AI — dùng PyTorch docs chính thức) | — | So sánh thư viện, tóm tắt API |
+| **Review** | Cursor IDE + Claude Sonnet 4.5 | `claude-sonnet-4-5` | Self-review code, kiểm tra convention |
 
-## Nguyên tắc sử dụng
+**Lý do chọn Cursor + Claude Sonnet 4.5:**
+- Cursor là IDE chính của dự án (môi trường làm việc).
+- Claude Sonnet 4.5 có cửa sổ context dài (200K token) → đọc được toàn bộ project.
+- Hỗ trợ `Agent` mode (tự chạy shell, đọc file) phù hợp với vòng lặp
+  Describe → Generate → Review → Run → Test → Refactor → Commit.
 
-1. **AI là công cụ, không phải tác giả.** Mọi quyết định kiến trúc (tách 5 module,
-   split trước / transform sau, dùng `.png` thay vì tensor trong RAM) đều do tác giả
-   đề xuất; AI hỗ trợ review ưu/nhược điểm.
-2. **Không commit code chưa chạy được.** Mỗi module đều chạy thực tế trên máy và
-   pass test trước khi commit.
-3. **Ghi rõ nguồn trong commit** nếu đoạn code lấy từ AI (xem bảng dưới).
-4. **Không gửi data nhạy cảm.** Project không có API key / credential / data cá nhân.
+**Công cụ AI KHÔNG dùng trong project:**
+- ❌ ChatGPT (OpenAI) — để giữ single source.
+- ❌ GitHub Copilot — đã tắt trong IDE.
+- ❌ Gemini / Claude.ai web — không tải code lên server bên ngoài.
+- ❌ Cursor Tab autocomplete — tắt để buộc mình viết tay, học kỹ hơn.
 
-## Công cụ AI đã dùng
+## 2. Plain Purposes
 
-### Cursor IDE (môi trường chính)
-- **Model mặc định:** Claude Sonnet 4.5 (`claude-sonnet-4-5`)
-- **Chế độ dùng:** Agent (tự chạy shell, đọc file) + Ask (giải thích concept)
-- **Cách dùng điển hình:**
-  - "Tạo skeleton module M1" → AI generate code → tác giả review → chạy thực tế
-  - "Tại sao test fail" → AI đọc traceback + code → đề xuất fix
-  - "Điền docs cho architecture" → AI viết dựa trên code thực tế
+- **Code generation** — AI scaffold module data loader theo plan đã duyệt
+  trong `progress_status.md`. Tác giả review + sửa trước khi commit.
+- **Documentation** — AI điền `docs/architecture.md`, `data-flow.md`, `api.md`,
+  `README.md`, `AI_Usage.md`, `CHANGELOG.md`, `data/README.md`, `AGENTS.md`
+  dựa trên code thực tế đã có. Tác giả review bố cục + bổ sung phần
+  "Quyết định kiến trúc".
+- **Debugging** — Khi pytest fail, AI đọc traceback + code → đề xuất root cause.
+  Tác giả tự verify bằng cách chạy lại test trước khi áp dụng fix.
+- **Review** — Tác giả dán code vào AI để hỏi "có edge case nào chưa cover?",
+  "có convention nào bị vi phạm không?". AI đề xuất, tác giả quyết.
 
-### Công cụ khác
-- **Không dùng** ChatGPT / Gemini / Copilot trong project này (chỉ Cursor).
-- **Không dùng** AI để tạo dataset hoặc data giả — toàn bộ data là FashionMNIST
-  chính thức từ `torchvision`.
+## 3. Student Contributions (con người làm gì)
 
-## Sử dụng theo giai đoạn
+| Công việc | Tác giả | AI hỗ trợ |
+|-----------|---------|-----------|
+| Định nghĩa bài toán (Practice 1 — FashionMNIST) | ✅ 100% | — |
+| Quyết định 5 module M0–M5 | ✅ 100% | ✅ gợi ý chia module |
+| Quyết định CNN architecture (2 conv + 2 FC) | ✅ 100% | ✅ đề xuất FashionCNN |
+| Quyết định split-trước-transform-sau (`.png` trên disk) | ✅ 100% | ✅ gợi ý tách bước |
+| Quyết định mean=0.2860, std=0.3530 | ✅ 100% (tham khảo PyTorch docs) | — |
+| Quyết định chọn Adam, lr=1e-3, batch=64, epochs=10 | ✅ 100% | — |
+| Viết `progress_status.md` (Project Context, Decisions Log) | ✅ 95% | ✅ 5% gợi ý format |
+| Self-review code trước commit | ✅ 100% | ✅ checklist từ prompts/review.md |
+| Tất cả commit (chọn message, push) | ✅ 100% | — |
+| Chạy code thực tế + verify (pytest, summarize) | ✅ 100% | — |
+| Đánh giá kết quả (accuracy, loss curve) | ✅ 100% | — |
 
-### Phase 1 — DEFINE (ngày 1)
-| Việc | AI hỗ trợ | AI tự quyết |
-|------|-----------|-------------|
-| Viết `progress_status.md` (Project Context) | — | ✅ (do tác giả) |
-| Chia 5 module M0–M5 | ✅ gợi ý | ✅ quyết định cuối |
-| Quyết định CNN architecture cho M2 | ✅ đề xuất FashionCNN | ✅ quyết định layer count |
+**Tỉ lệ tổng thể (estimate):**
+- AI: ~30% thời gian (boilerplate, docs, gợi ý)
+- Tác giả: ~70% thời gian (quyết định, code, verify, commit, học)
 
-### Phase 2 — BUILD
-#### M0 — Scaffold (commit initial)
-- **AI hỗ trợ:** Generate cấu trúc thư mục, `__init__.py` rỗng, `requirements.txt`.
-- **Output:** ~6 file Python skeleton.
-- **Review:** Tác giả thêm `.gitignore` (data/, results/, .venv/), thêm
-  `configs/baseline.yaml` theo schema thống nhất.
+## 4. Important AI-Generated Artifacts
 
-#### M1 — Data module (commit `ff2e11a`)
-- **AI hỗ trợ:**
-  - Generate `src/data/split.py` (~90 dòng): logic split + ghi `.png` ra disk.
-  - Generate `src/data/dataset.py` (~80 dòng): `build_dataloaders()` + `summarize()`.
-  - Generate 11 test trong `tests/test_dataset.py`.
-- **AI tự quyết:** Cách tách split (1 lần) và transform (mỗi lần load) — AI đề xuất,
-  tác giả chấp nhận sau khi đánh giá ưu điểm (chống data leakage, reproducible).
-- **Verify:** Chạy 3 lần shell (lệnh `python -c "import torch..."`,
-  `summarize(loaders)`, `summarize(loaders)` unbuffered) — tất cả success.
-- **Test:** 11/11 pytest pass.
+| File | Nội dung | Prompt đã dùng (tóm tắt) |
+|------|----------|--------------------------|
+| `src/data/split.py` (90 dòng) | `split_fashionmnist_to_disk()` | "Viết hàm split FashionMNIST gốc thành 3 tập, lưu ra .png, idempotent, seed=42, CLI argparse." |
+| `src/data/dataset.py` (80 dòng) | `build_dataloaders()`, `summarize()` | "Viết DataLoader cho 3 tập từ ImageFolder, transform ToTensor+Normalize, đọc config YAML, in summarize." |
+| `tests/test_dataset.py` (130 dòng) | 11 test | "Viết 11 pytest cho M1: số file, class folder, batch shape, dtype, pixel range, idempotency." |
+| `docs/architecture.md` (147 dòng) | Sơ đồ 5 module + design conventions | "Điền architecture.md dựa trên code thực tế đã có, đừng bịa, đánh dấu M2-M5 chưa code." |
+| `docs/data-flow.md` (161 dòng) | Sơ đồ 2 bước split → transform | "Điền data-flow.md cho M1, có sơ đồ ASCII end-to-end M1→M5, ví dụ 1 ảnh." |
+| `docs/api.md` (196 dòng) | API public + đặc tả M2–M5 | "Điền api.md với input/output/side effect cho mỗi hàm, error contracts." |
+| `AGENTS.md` (130 dòng) | Working rules cho AI agent | "Viết AGENTS.md tổng hợp convention + DoD + commit chuẩn cho Cursor agent." |
+| `CHANGELOG.md` (60 dòng) | Lịch sử version 0.1.0 | "Viết CHANGELOG.md format Keep a Changelog, liệt kê 6 commit." |
+| `data/README.md` (75 dòng) | Hướng dẫn sinh data | "Viết data/README.md hướng dẫn chạy split.py, bảng 10 lớp, idempotency." |
+| `README.md` (212 dòng) | 10 mục chuẩn | "Viết README.md đủ 10 mục theo template, có limitation + future." |
+| `AI_Usage.md` (file này) | 7 mục chuẩn | "Viết AI_Usage.md theo template 7 mục, estimate % đóng góp." |
 
-#### Docs (commit `e32241d`)
-- **AI hỗ trợ:** Điền `docs/architecture.md` (137 dòng), `docs/data-flow.md` (132 dòng),
-  `docs/api.md` (161 dòng) dựa trên code thực tế đã commit.
-- **AI tự quyết:** Bố cục sơ đồ ASCII, bảng so sánh, danh sách API. Tác giả
-  review + bổ sung phần "Quyết định kiến trúc".
-- **File này (AI_Usage.md) + README.md:** Tác giả yêu cầu AI generate dựa trên
-  thực tế project, không bịa.
+## 5. Prompt Purpose (cho mỗi artifact)
 
-## Tỉ lệ đóng góp (estimate)
+- **`src/data/split.py`** — prompt yêu cầu AI viết hàm split với ràng buộc:
+  dùng `torchvision.datasets.FashionMNIST`, seed=42, ghi `.png` (không ghi
+  tensor), idempotent (skip nếu đủ file), CLI argparse, docstring đầy đủ.
+  Tác giả review: thêm check `val_split <= 60000` và logging.
+- **`src/data/dataset.py`** — prompt yêu cầu AI viết DataLoader đọc config
+  YAML (`configs/baseline.yaml`), 3 transform riêng từng tập, auto `pin_memory`
+  nếu CUDA. Tác giả review: thêm fallback default nếu key không có trong YAML.
+- **`tests/test_dataset.py`** — prompt yêu cầu AI viết 11 test cover:
+  số ảnh mỗi tập, class folder tồn tại, batch shape, dtype float32/int64,
+  pixel range, số batch, shuffle train, không shuffle val/test, idempotency.
+  Tác giả review: thêm test config path tồn tại.
+- **`docs/architecture.md`** — prompt yêu cầu AI điền file dựa trên code thực tế,
+  KHÔNG bịa M2–M5 (đánh dấu ⏳), có sơ đồ ASCII tổng quan. Tác giả review: bổ
+  sung mục "Quyết định kiến trúc" ở cuối.
+- **`docs/data-flow.md`** — prompt yêu cầu AI vẽ sơ đồ 2 bước (split 1 lần,
+  transform on-the-fly) + end-to-end M1→M5, có ví dụ 1 ảnh đi qua pipeline.
+- **`docs/api.md`** — prompt yêu cầu AI liệt kê API public: input/output/side
+  effect/raises/CLI cho mỗi hàm. Tác giả review: chuẩn hóa bảng error contract.
+- **`AGENTS.md`** — prompt yêu cầu AI tổng hợp convention từ
+  `.cursor/skills/ai-fusion-workflow/SKILL.md` thành file ngắn gọn cho agent
+  đọc nhanh, có DoD 8 mục + Conventional Commit format.
+- **`CHANGELOG.md`** — prompt yêu cầu AI liệt kê 6 commit + dataset v1.0 +
+  configuration + limitations + reproducibility command.
+- **`data/README.md`** — prompt yêu cầu AI viết hướng dẫn ngắn cho người mới,
+  giải thích tại sao dùng `.png` thay vì tensor, tại sao gitignore.
+- **`README.md`** — prompt yêu cầu AI viết đủ 10 mục theo template
+  `templates/readme.md`, có limitation + future improvements, link tới docs khác.
+- **`AI_Usage.md` (file này)** — prompt yêu cầu AI tự viết về chính mình theo
+  template 7 mục, có estimate % đóng góp.
 
-| Loại công việc | % do AI | % do tác giả |
-|----------------|---------|--------------|
-| Boilerplate code (split, dataset, tests) | ~60% | ~40% review |
-| Decision kiến trúc | ~10% | ~90% |
-| Debug / fix test fail | ~50% | ~50% |
-| Viết docs (architecture, data-flow, api) | ~80% | ~20% review |
-| Viết `progress_status.md` | ~5% | ~95% |
-| Chạy thực tế + verify | 0% (AI không chạy máy tác giả) | 100% |
-| Git commit | 0% | 100% |
+## 6. Student Modifications
 
-## Không dùng AI cho
+- **`src/data/split.py`** — thêm check `if val_split < 0 or val_split > 60000:
+  raise ValueError(...)` để bắt input lỗi sớm, thay vì để Python tự lỗi
+  ambiguous. AI gốc chỉ có `random.shuffle` không validate.
+- **`src/data/dataset.py`** — thêm fallback `cfg.get("data", {})` để nếu
+  config thiếu key `data` thì dùng dict rỗng thay vì `KeyError`. AI gốc
+  dùng `cfg["data"]` trực tiếp.
+- **`tests/test_dataset.py`** — thêm test `test_config_exists` kiểm tra
+  `configs/baseline.yaml` tồn tại, vì đây là input bắt buộc của
+  `build_dataloaders`. AI gốc chỉ test 10 case liên quan data.
+- **`configs/baseline.yaml`** — sửa `num_workers: 2` thành `num_workers: 0`
+  trên Windows (AI đề xuất 2 theo Linux convention, nhưng Windows có thể
+  bị hang nếu fork nhiều). Hiện để 2 vì máy tác giả chạy OK, nhưng ghi
+  chú "set 0 nếu bị lỗi trên Windows".
+- **`docs/architecture.md`** — thêm mục "Quyết định kiến trúc" ở cuối với
+  6 quyết định + lý do, vì AI gốc chỉ liệt kê convention chung.
+- **`docs/data-flow.md`** — thêm "Ví dụ cụ thể 1 ảnh" đi từ file `.png`
+  đến logits, vì phần này quan trọng cho người mới hiểu pipeline.
+- **`README.md`** — thay thế placeholder "TBD" trong Results bằng bảng với
+  status thật (✅ M1 đã có, ⏳ M3–M5 chưa). AI gốc để placeholder trống.
+- **Quyết định KHÔNG dùng AI cho** `progress_status.md` — vì đây là nơi ghi
+  nhận quyết định của tác giả, để AI tự viết sẽ dẫn đến circular reference
+  (AI viết về việc AI đã dùng ở đâu). Tác giả viết 95% file này.
 
-- ❌ Tạo data giả / fake accuracy
-- ❌ Copy code từ repo khác mà không hiểu
-- ❌ Commit code chưa chạy được
-- ❌ Bỏ qua test fail
-- ❌ Tăng accuracy bằng cách "tweak số" không có cơ sở
+## 7. Validation Method
 
-## Kiểm chứng
+Đã thực hiện trong project:
 
-- Tất cả code đã commit có thể reproduce: `git clone` → `pip install -r requirements.txt`
-  → `python -m src.data.split` → `pytest -v` đều pass.
-- Commit history tại `e:\lab1\.git\log` có thể kiểm tra bằng `git log --oneline`.
-- 4 commit chính:
-  1. `M0 — scaffold`
-  2. `ff2e11a feat(data): M1 data module — split FashionMNIST ra .png, build DataLoaders`
-  3. `ca59d91 docs(progress): mark M1 done, activate M2 model module`
-  4. `e32241d docs: điền đầy đủ architecture, data-flow, api dựa trên M0+M1 đã ship`
+- [x] **Chạy code end-to-end trên môi trường sạch** — `pip install -r
+  requirements.txt` → `python -m src.data.split` → `pytest -v` đều pass.
+- [x] **So sánh output với baseline** — FashionMNIST gốc có 60.000 train +
+  10.000 test, mình reproduce đúng (50k train + 10k val + 10k test).
+- [x] **Viết unit/integration test** — `tests/test_dataset.py` 11 test
+  cover happy path + edge case (idempotency, config thiếu).
+- [x] **Reproduce kết quả từ fresh clone** — sau mỗi commit, đã xóa
+  `data/raw/` rồi chạy lại split.py, kết quả giống hệt.
+- [x] **Sanity-check metric theo DoD** — batch shape `[64, 1, 28, 28]`,
+  dtype float32/int64, pixel range `[-0.81, 2.02]`, label range `[0, 9]`
+  đều đúng như spec.
 
-## Cập nhật
+Sẽ thực hiện ở M3+:
 
-| Ngày | Thay đổi |
-|------|----------|
-| 2026-10-11 | Tạo file, ghi nhận 4 commit đầu (M0, M1, mark M1 done, điền docs). |
+- [ ] Test accuracy ≥ 88% (sau M4).
+- [ ] Loss giảm đều qua 10 epoch (sau M3).
+- [ ] Confusion matrix không có class nào < 70% (sau M4, optional).
+- [ ] Save/load model roundtrip cho cùng accuracy (sau M4).
+
+---
+
+**Nguyên tắc cuối cùng:**
+
+> AI là công cụ, người là chủ. Mọi code AI generate đều được tác giả đọc
+> lại từng dòng, chạy thực tế trên máy, và commit bằng tay. Không có dòng
+> code nào trong repo này được commit mà tác giả không hiểu.
