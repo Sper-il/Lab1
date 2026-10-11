@@ -1,7 +1,7 @@
 # Practice 1 — PyTorch FashionMNIST Classification
 
 > Single source of truth cho **đang làm gì, tại sao, và đã làm được gì**.
-> Cập nhật lần cuối: 2026-10-11 17:20
+> Cập nhật lần cuối: 2026-10-11 18:13
 
 ---
 
@@ -245,7 +245,14 @@ results/runs/<ts>/metrics.json + ảnh PNG
 | 0 | Define + Design | 2026-10-11 | ✅ | — | Phase 1 + Phase 2 xong. |
 | 1 | M0 — Scaffold | 2026-10-11 | ✅ | 599d20f | 27 file: folder + requirements + config + 6 __init__.py + docs stub. |
 | 2 | M1 — Data module | 2026-10-11 | ✅ | ff2e11a | 70.000 ảnh .png sinh ra; 11/11 pytest pass; split reproducible. |
-| 3 | M2 — Model module | 2026-10-11 | ⏳ | — | Tiếp theo: src/models/fashion_cnn.py. |
+| 3 | M1 done marker | 2026-10-11 | ✅ | ca59d91 | `progress_status.md` cập nhật, kích hoạt M2. |
+| 4 | Docs M0+M1 | 2026-10-11 | ✅ | e32241d | `docs/architecture.md` (147 dòng), `data-flow.md` (161), `api.md` (196). |
+| 5 | README + AI_Usage | 2026-10-11 | ✅ | eed745e | `README.md` (142 dòng) + `AI_Usage.md` (112 dòng). |
+| 6 | AGENTS + __init__ | 2026-10-11 | ✅ | d271a1c | `AGENTS.md` (130 dòng) + `tests/__init__.py` + `src/__init__.py`. |
+| 7 | CHANGELOG + data/README | 2026-10-11 | ✅ | 301a52c | `CHANGELOG.md` (60 dòng) + `data/README.md` (75 dòng). |
+| 8 | README đủ 10 mục | 2026-10-11 | ✅ | ccd6de3 | Mở rộng README lên 212 dòng theo template 10 mục. |
+| 9 | AI_Usage 7 mục | 2026-10-11 | ✅ | 8612ff9 | Rewrite AI_Usage theo template 7 mục. |
+| 10 | M2 — Model module | 2026-10-11 | ⏳ | — | Tiếp theo: `src/models/fashion_cnn.py`. |
 
 ---
 
@@ -264,6 +271,28 @@ results/runs/<ts>/metrics.json + ảnh PNG
 
 ## Risks & Mitigations
 *(xem bảng Technical risks ở trên)*
+
+---
+
+## Definition of Done — M0 (Scaffold)
+- [x] Đúng yêu cầu (folder structure khớp template, 6 `__init__.py` rỗng)
+- [x] Code chạy end-to-end (`import src` không lỗi)
+- [x] Tests pass (chưa có test ở M0, đúng theo plan)
+- [x] Không có secrets / artifact lớn (`.gitignore` có data/, results/, *.pt)
+- [x] Code đã self-review (PASS)
+- [x] Có thể giải thích được (cấu trúc folder lý do từng thư mục)
+- [x] Docs đã cập nhật (`docs/` stub + `progress_status.md`)
+- [x] Đã committed (`599d20f`)
+
+## Definition of Done — M1 (Data)
+- [x] Đúng yêu cầu (split 50k/10k/10k, 3 DataLoader với transform chuẩn)
+- [x] Code chạy end-to-end (`python -m src.data.split` → 70k ảnh, `build_dataloaders` → 3 loader)
+- [x] Tests pass (**11/11 pytest** trong `tests/test_dataset.py`)
+- [x] Không có secrets / artifact lớn (`data/raw/` gitignore, ảnh sinh ra ~140MB ngoài repo)
+- [x] Code đã self-review (có docstring, type hint, logging)
+- [x] Có thể giải thích được (mỗi hàm có docstring + comment quan trọng)
+- [x] Docs đã cập nhật (`docs/architecture.md`, `data-flow.md`, `api.md`, `README.md` mục 7, `data/README.md`)
+- [x] Đã committed (`ff2e11a` + `ca59d91` + `e32241d` + `eed745e` + `d271a1c` + `301a52c` + `ccd6de3` + `8612ff9`)
 
 ---
 
