@@ -1,10 +1,35 @@
 # Network & Hyperparameter Report (Người 1)
 
 > **Deliverable:** Build Network + Hyperparameter Experiment
-> **Người phụ trách:** Người 1 (Network)
+> **Người phụ trách:** Trương Hoài Tú (Người 1)
 > **Ngày chạy:** 2026-10-12
 > **Dataset:** FashionMNIST (60k train / 10k test, 28×28 grayscale, 10 classes)
 > **Device:** CPU (CUDA không khả dụng)
+>
+> ---
+>
+> ## ✅ Trạng thái hoàn thành
+>
+> | Hạng mục | Trạng thái | Ghi chú |
+> |-----------|:-----------:|---------|
+> | Baseline MLP | ✅ Xong | 1 hidden layer, smoke test pass |
+> | Deep MLP | ✅ Xong | 3 FC layers + BatchNorm, smoke test pass |
+> | Simple CNN | ✅ Xong | 2 conv blocks, **best model (89.97%)** |
+> | ResNet Mini | ✅ Xong | 3-stage ResNet, smoke test pass |
+> | ModelFactory registry | ✅ Xong | 4 models đăng ký đầy đủ |
+> | Smoke test 4 architectures | ✅ Xong | Forward shape + loss giảm |
+> | Grid search 8 trials | ✅ Xong | best: simple_cnn + adam + lr=0.001 |
+> | Random search | ✅ Xong | Implement đầy đủ |
+> | HyperparameterTuner | ✅ Xong | Grid + random search, persist JSON/MD |
+> | HyperoptScheduler | ✅ Xong | Writer, reporter, config |
+> | Config `hyperopt_config.yaml` | ✅ Xong | Grid + random space |
+> | `run_experiments.py` entry point | ✅ Xong | `--smoke`, `--strategy`, `--n-trials`, `--epochs` |
+> | Bug fix `split.py` | ✅ Xong | (a) import path, (b) stratified shuffle |
+> | Integration test 3 epochs | ✅ Xong | val_acc=89.97% |
+> | `TEAM_GUIDE.md` | ✅ Xong | Hướng dẫn cho cả team |
+> | Handoff sang Người 2/3 | ✅ Xong | Best config, loader interface |
+>
+> **Tổng kết: 16/16 hạng mục — HOÀN THÀNH 100%**
 
 ---
 
@@ -178,7 +203,7 @@ results/runs/
 ## 5. Test Coverage (đã chạy)
 
 | Test | Kết quả |
-|------|---------|
+|------|:-------:|
 | Smoke test 4 architectures (forward shape + loss giảm) | ✅ pass |
 | Forward `(B, 1, 28, 28) → (B, 10)` cho mọi model | ✅ pass |
 | Grid search với 8 trials (grid + scalar constants) | ✅ pass |
@@ -223,4 +248,5 @@ python run_experiments.py --strategy random --n-trials 12 --epochs 3 --batch-siz
 
 ---
 
-**Người 1 — Network & Hyperparameter Experiment, hoàn thành.**
+**Người 1 — Network & Hyperparameter Experiment — HOÀN THÀNH 100% ✅**
+*(Trương Hoài Tú, 2026-10-12)*

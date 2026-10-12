@@ -1,0 +1,73 @@
+# =============================================================================
+#  Hyperparameter Search Space — FashionMNIST (Người 1)
+# =============================================================================
+#  This file is the single source of truth for what the search sweeps over.
+#  `run_experiments.py` reads it and passes the right structure to
+#  HyperparameterTuner.grid_search() / .random_search().
+#
+#  Keys supported by `train_with_params`:
+#    - model_name      (must be in ModelFactory)
+#    - learning_rate   (float)
+#    - batch_size      (int)        — note: ignored at the trial level because
+#                                    we re-use the loaders provided to the
+#                                    tuner. Kept here for documentation and
+#                                    to feed results.json.
+#    - optimizer       ("adam" | "sgd")
+#    - weight_decay    (float)
+#    - dropout         (float, only used by models with dropout)
+#    - epochs          (int, per trial)
+# =============================================================================
+
+strategy: random          # "grid" or "random"
+
+# When strategy == random
+n_trials: 12
+seed: 42
+
+# Common to both strategies
+epochs_per_trial: 3
+
+# Architectures to choose from at random (one is picked if model_name is not
+# a list in the param_grid).
+models:
+  - baseline_mlp
+  - deep_mlp
+  - simple_cnn
+  - resnet_mini
+
+# When strategy == grid, the Cartesian product below is used.
+# Keep the product ≤ 8 combinations or the runtime blows up.
+grid_search:
+  model_name:
+    - simple_cnn
+    - deep_mlp
+  learning_rate:
+    - 0.001
+    - 0.0005
+  optimizer:
+    - adam
+    - sgd
+  epochs: 3
+
+# When strategy == random, the distributions below are sampled from.
+random_search:
+  model_name:
+    - baseline_mlp
+    - deep_mlp
+    - simple_cnn
+    - resnet_mini
+  learning_rate: [0.0001, 0.001, 0.01]
+  batch_size: [32, 64, 128]
+  weight_decay: [0.0, 0.0001, 0.001]
+  optimizer: [adam, sgd]
+  dropout: [0.2, 0.3, 0.5]
+  epochs: 3
+
+# Optional cheap pruning (kept here for documentation; the current
+# scheduler does not actively prune, but it filters results after the fact).
+prune_below: 60.0
+
+# Where reports land
+output:
+  dir: results/runs
+  filename_prefix: hyperopt
