@@ -134,18 +134,23 @@ class DataSplitter:
         # Distribute samples proportionally
         train_ratio = self.config.train_ratio
         val_ratio = self.config.val_ratio
-        
+
         stratified_indices = []
-        
+
         for label, idx_list in label_to_indices.items():
             n = len(idx_list)
             n_train = int(n * train_ratio)
             n_val = int(n * val_ratio)
-            
+
             stratified_indices.extend(idx_list[:n_train])
             stratified_indices.extend(idx_list[n_train:n_train + n_val])
             stratified_indices.extend(idx_list[n_train + n_val:])
-        
+
+        # CRITICAL: shuffle the final stratified indices. Otherwise the
+        # caller would see all-class-1-then-all-class-2 ordering, and a
+        # plain ``indices[:n_train]`` slice would steal entire classes
+        # into either train or val.
+        np.random.shuffle(stratified_indices)
         return stratified_indices
     
     def create_split_from_existing(
@@ -226,7 +231,7 @@ class DataSplitManager:
         Returns:
             Tuple of (train_subset, val_subset, test_dataset)
         """
-        from dataset import load_fashion_mnist
+        from src.data.dataset import load_fashion_mnist
         
         logger.info("Loading and splitting FashionMNIST...")
         
@@ -275,7 +280,7 @@ class DataSplitManager:
         Returns:
             Tuple of (train_loader, val_loader, test_loader)
         """
-        from dataset import create_data_loader
+        from src.data.dataset import create_data_loader
         
         if self.train_subset is None or self.test_subset is None:
             raise ValueError("Must call load_and_split before creating loaders")
