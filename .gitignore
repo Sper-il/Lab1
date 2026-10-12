@@ -17,7 +17,6 @@ downloads/
 eggs/
 .eggs/
 lib/
-data/
 lib64/
 parts/
 sdist/
