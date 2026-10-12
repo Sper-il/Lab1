@@ -1,13 +1,15 @@
-"""
-Evaluation Module
-=================
-Model evaluation and metrics computation.
+# src/evaluation/__init__.py
 
-This module will contain:
-- Accuracy and classification metrics
-- Confusion matrix visualization
-- Error analysis
-- Model comparison
-"""
+from .evaluator import ModelEvaluator
+from .model_io import ModelIO
+from .visualizer import PredictionVisualizer
+from .confusion_matrix import ConfusionMatrixPlotter
+from .error_analysis import ErrorAnalyzer
 
-__version__ = "0.1.0"
+__all__ = [
+    'ModelEvaluator',
+    'ModelIO',
+    'PredictionVisualizer',
+    'ConfusionMatrixPlotter',
+    'ErrorAnalyzer'
+]
