@@ -34,11 +34,11 @@ e:\lab1/
 ├── data/
 │   ├── raw/                # Original FashionMNIST dataset (gitignored)
 │   │   ├── FashionMNIST/   # Original archive
-│   │   ├── train/          # Raw train data (50k ảnh PNG)
-│   │   ├── val/            # Raw val data (10k ảnh PNG)
-│   │   ├── test/           # Raw test data (10k ảnh PNG)
 │   │   └── _torchvision_cache/  # Torchvision download cache
-│   ├── processed/          # Transformed/augmented data (.gitkeep)
+│   ├── processed/          # Split images as PNG (gitignored, 70k files)
+│   │   ├── train/<class_id>/*.png   # 50.000 train images
+│   │   ├── val/<class_id>/*.png     # 10.000 val images
+│   │   └── test/<class_id>/*.png    # 10.000 test images
 │   ├── splits/             # Train/val/test split info
 │   │   └── split_info.txt
 │   └── README.md           # Data folder guide

@@ -161,6 +161,7 @@
 | 2026-10-11 22:32 | Pipeline Test | Ran end-to-end Phase 1 pipeline | ✅ |
 | 2026-10-11 22:35 | Re-run Phase 1 | Re-ran pipeline for final verification | ✅ |
 | 2026-10-11 22:36 | Re-run EDA | Re-generated all EDA plots | ✅ |
+| 2026-10-12 07:01 | Data Layout | Moved 70k split PNGs from data/raw/ → data/processed/ (proper input vs output separation); updated split.py default + data/README.md | ✅ |
 
 ---
 

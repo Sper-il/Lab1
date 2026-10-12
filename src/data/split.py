@@ -209,7 +209,7 @@ class DataSplitManager:
     
     def load_and_split(
         self,
-        data_dir: str = "./data/raw",
+        data_dir: str = "./data/processed",
         train_transform=None,
         test_transform=None,
         stratify: bool = True
@@ -333,7 +333,7 @@ class DataSplitManager:
 
 
 def split_pipeline(
-    data_dir: str = "./data/raw",
+    data_dir: str = "./data/processed",
     batch_size: int = 64,
     val_ratio: float = 0.1,
     num_workers: int = 0
@@ -386,7 +386,7 @@ if __name__ == "__main__":
     logger.info("Testing data split module...")
     
     train_loader, val_loader, test_loader = split_pipeline(
-        data_dir="./data/raw",
+        data_dir="./data/processed",
         batch_size=64,
         val_ratio=0.1
     )

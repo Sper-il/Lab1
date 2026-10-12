@@ -7,13 +7,22 @@
 
 ```
 data/
-├── raw/                              # gitignore
-│   ├── train/<class_id>/*.png        # 50.000 ảnh
-│   ├── val/<class_id>/*.png          # 10.000 ảnh
-│   ├── test/<class_id>/*.png         # 10.000 ảnh
-│   └── _torchvision_cache/            # cache nội bộ của torchvision (gitignore)
+├── raw/                              # gitignore — FashionMNIST gốc
+│   ├── FashionMNIST/                 # archive gốc từ torchvision
+│   └── _torchvision_cache/           # cache nội bộ của torchvision (gitignore)
+├── processed/                        # gitignore — ảnh đã split ra PNG
+│   ├── train/<class_id>/*.png        # 50.000 ảnh (chia từ 60k train gốc)
+│   ├── val/<class_id>/*.png          # 10.000 ảnh (lấy 10k từ train gốc)
+│   └── test/<class_id>/*.png         # 10.000 ảnh (gốc từ test set)
+├── splits/                           # metadata thuần text (committed)
+│   └── split_info.txt                # thông tin split: sizes, seed
 └── README.md                         # file này
 ```
+
+> **Quy ước**:
+> - `data/raw/` = input (chỉ chứa FashionMNIST gốc + cache, KHÔNG chứa ảnh đã xử lý)
+> - `data/processed/` = output (70.000 ảnh PNG đã split train/val/test)
+> - `data/splits/` = metadata (file text nhỏ, có thể commit)
 
 ## 10 lớp (theo thứ tự index)
 
@@ -38,35 +47,35 @@ Mỗi lớp có **6.000 ảnh train + 1.000 ảnh val + 1.000 ảnh test** (chia
 ### Bước 1 — Chạy script split (1 lần, ~2-3 phút)
 
 ```bash
-python -m src.data.split --root data/raw --val-split 10000 --seed 42
+python -m src.data.split --root data/processed --val-split 10000 --seed 42
 ```
 
 Script này sẽ:
 
 1. Tải FashionMNIST gốc (~30 MB) về `data/raw/_torchvision_cache/` (lần đầu).
 2. Chia 60.000 ảnh train gốc thành **50.000 train + 10.000 val** (random, seed=42).
-3. Ghi tất cả 70.000 ảnh ra `.png` (28×28, grayscale) với tên
-   `<class_name>_<original_idx>.png` trong folder tương ứng.
+3. Ghi tất cả 70.000 ảnh ra `.png` (28×28, grayscale) vào `data/processed/`
+   với tên `<class_name>_<original_idx>.png` trong folder tương ứng.
 4. In bảng số lượng ảnh / lớp / split.
 
 ### Bước 2 — Idempotency
 
-Nếu `data/raw/train/<class>/*.png` đã đủ 5.000 file, script sẽ **skip** toàn bộ
-quá trình. Nếu muốn ép sinh lại:
+Nếu `data/processed/train/<class>/*.png` đã đủ 5.000 file, script sẽ **skip**
+toàn bộ quá trình. Nếu muốn ép sinh lại:
 
 ```bash
 # Xóa rồi chạy lại
-Remove-Item -Recurse -Force data\raw    # PowerShell
-# rm -rf data/raw                       # bash
-python -m src.data.split --root data/raw --val-split 10000 --seed 42
+Remove-Item -Recurse -Force data\processed    # PowerShell
+# rm -rf data/processed                       # bash
+python -m src.data.split --root data/processed --val-split 10000 --seed 42
 ```
 
 ## Verify sau khi sinh
 
 ```bash
 # Tổng số file
-Get-ChildItem -Recurse data\raw\*.png | Measure-Object    # PowerShell
-find data/raw -name "*.png" | wc -l                       # bash
+Get-ChildItem -Recurse data\processed\*.png | Measure-Object    # PowerShell
+find data/processed -name "*.png" | wc -l                       # bash
 # → 70000
 
 # Test pass
@@ -78,7 +87,7 @@ pytest tests/test_dataset.py -v
 
 | Tham số | Mặc định | Ý nghĩa |
 |---------|----------|---------|
-| `--root` | `data/raw` | Thư mục output |
+| `--root` | `data/processed` | Thư mục output (ảnh đã split) |
 | `--val-split` | `10000` | Số mẫu validation lấy từ train gốc |
 | `--seed` | `42` | Random seed cho split (reproducible) |
 
