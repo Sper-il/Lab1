@@ -1,9 +1,9 @@
 # Progress Status - FashionMNIST PyTorch Project
 
-**Last Updated:** 2026-10-12 11:10
-**Project Status:** Phase 2 IN PROGRESS — Người 1 ✅ DONE
+**Last Updated:** 2026-10-12 13:15
+**Project Status:** Phase 2 IN PROGRESS — Người 1 ✅ DONE (real results)
 **Current Milestone:** Người 1: Network + Hyperparameter Experiment ✅
-**Last Run:** Full e2e pipeline verified at 10:40 ✅ (val_acc=89.97%)
+**Last Run:** Grid search 8 trials + Real training 3 epochs at 13:15 ✅ (val_acc=90.12% on real training, 90.53% in grid search)
 
 ---
 
@@ -179,6 +179,8 @@
 | 2026-10-12 09:57 | Người 1 | Full grid search 8 trials × 3 epochs → best val_acc=89.97% (simple_cnn + adam + lr=0.001) | ✅ |
 | 2026-10-12 10:xx | Người 1 | End-to-end pipeline verified + `docs/TEAM_GUIDE.md` + `nguoi1_models_report.md` | ✅ |
 | 2026-10-12 11:10 | Người 1 | **Phase 2 Người 1 — HOÀN THÀNH 100% (16/16 tasks)** | ✅ |
+| 2026-10-12 12:32 | Người 1 | **Re-run grid search 8 trials × 3 epoch thật** → best val_acc=90.53% (simple_cnn + adam + lr=0.001) | ✅ |
+| 2026-10-12 13:15 | Người 1 | **Real training 3 epoch thật với best config** → val_acc=90.12% → saved `models/checkpoints/best_model.pt` (1.69MB) | ✅ |
 
 ---
 

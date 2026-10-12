@@ -80,8 +80,8 @@ venv.bak/
 *~
 
 # Project specific
-*.pt
-*.pth
+# *.pt      # MODEL: uncomment to track .pt checkpoints
+# *.pth     # MODEL: uncomment to track .pth checkpoints
 *.ckpt
 data/raw/*
 data/processed/*
