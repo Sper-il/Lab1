@@ -24,14 +24,18 @@ e:\lab1/
 ├── requirements.txt             # Python dependencies
 ├── .gitignore                   # Git ignore rules
 │
-├── run_phase1_pipeline.py       # Run Phase 1 pipeline
-├── run_eda_visualization.py     # Generate EDA plots
-├── main.py                      # Main training script (Phase 2+)
+├── main.py                      # Main training script (Phase 2+ placeholder)
 │
 ├── data/                        # Dataset storage
-│   ├── raw/                     # Original FashionMNIST (downloaded)
-│   ├── processed/               # Processed data
-│   └── splits/                  # Split info
+│   ├── raw/                     # Original FashionMNIST (downloaded, gitignored)
+│   │   ├── FashionMNIST/        # Original archive
+│   │   └── _torchvision_cache/  # Torchvision download cache
+│   ├── processed/               # Split PNGs (gitignored, 70k files)
+│   │   ├── train/<class_id>/*.png  # 50.000 train
+│   │   ├── val/<class_id>/*.png    # 10.000 val
+│   │   └── test/<class_id>/*.png   # 10.000 test
+│   └── splits/                  # Split info (committed)
+│       └── split_info.txt
 │
 ├── src/                         # Source code
 │   ├── data/                    # Phase 1: Data preparation
@@ -55,7 +59,10 @@ e:\lab1/
 │   ├── ARCHITECTURE.md
 │   ├── EXPERIMENTS.md
 │   ├── audit_code.md
-│   └── PHASE1_REPORT.md         # Phase 1 summary report
+│   ├── PHASE1_REPORT.md         # Phase 1 summary report
+│   ├── PHASE2_PLAN.md           # Phase 2 plan (3 people)
+│   ├── QUICK_START.md           # This file
+│   └── reports/                 # Phase 2 reports
 │
 ├── results/                     # Experiment results
 │   └── runs/                    # EDA plots + experiment outputs
@@ -79,29 +86,29 @@ e:\lab1/
 pip install -r requirements.txt
 ```
 
-### 2. Run Phase 1 Pipeline
+### 2. Generate Split Data (1 lần, ~2-3 phút)
 
 ```bash
-python run_phase1_pipeline.py
+python -m src.data.split --root data/processed --val-split 10000 --seed 42
 ```
 
-This will:
-- Load FashionMNIST dataset
-- Validate data quality
-- Compute preprocessing statistics
-- Split into train/val/test
+Script này sẽ:
+- Tải FashionMNIST gốc về `data/raw/_torchvision_cache/` (lần đầu)
+- Chia 60.000 ảnh train gốc thành 50.000 train + 10.000 val (random, seed=42)
+- Ghi 70.000 ảnh `.png` (28×28 grayscale) vào `data/processed/{train,val,test}/<class_id>/`
+- Idempotent — skip nếu đã tồn tại
 
-### 3. Run EDA Visualization
+### 3. Run EDA Visualization (1 lần, ~20s)
 
 ```bash
-python run_eda_visualization.py
+python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').generate_full_report('results/runs')"
 ```
 
-This generates plots in `results/runs/`:
+Generates 4 plots in `results/runs/`:
 - Class distribution
-- Sample images
-- Pixel histogram
-- Per-class samples
+- Sample images (25 random)
+- Pixel intensity histogram
+- Per-class samples (1 mỗi class)
 
 ## Phase 1 Results Summary
 

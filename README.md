@@ -70,7 +70,6 @@ e:\lab1/
 ├── docs/                   # 📁 All project documentation
 │   ├── README.md           # Docs index
 │   ├── AI_Usage.md         # AI assistance report
-│   ├── progress_status.md  # Project progress tracking
 │   ├── audit_code.md       # Code audit report
 │   ├── CHANGELOG.md        # Version history
 │   ├── ARCHITECTURE.md     # System architecture

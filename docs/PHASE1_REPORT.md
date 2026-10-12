@@ -121,23 +121,33 @@ stratified: True  # Preserve class distribution
 
 ### How to Run
 
-```bash
-# Run full Phase 1 pipeline
-python run_phase1_pipeline.py
+> **Note:** Phase 1 đã chạy thành công và sinh ra 70.000 ảnh PNG trong
+> `data/processed/`. Các lần chạy lại dùng module trực tiếp (không còn
+> `run_phase1_pipeline.py` — đã được cleanup trong commit `70691e2`).
 
-# Run only EDA visualization
-python run_eda_visualization.py
+```bash
+# Từ project root, kích hoạt venv rồi:
+
+# Test toàn bộ data pipeline (load → cleaning → preprocessing → split)
+python -m src.data.preprocessing
+
+# Sinh lại 70.000 ảnh PNG (idempotent — skip nếu đã tồn tại)
+python -m src.data.split --root data/processed --val-split 10000 --seed 42
+
+# Sinh lại EDA plots (4 file PNG trong results/runs/)
+python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').generate_full_report('results/runs')"
 ```
 
 ### Output Locations
 
 | Output | Path |
 |--------|------|
+| 70k split PNGs | `data/processed/{train,val,test}/<class_id>/*.png` |
 | EDA plots | `results/runs/*.png` |
 | Split info | `data/splits/split_info.txt` |
 | Run logs | `logs/phase1_run.log` |
 | EDA log | `logs/eda_visualization.log` |
-| Dataset | `data/raw/FashionMNIST/` |
+| Raw archive | `data/raw/FashionMNIST/` (chỉ chứa FashionMNIST gốc, KHÔNG chứa ảnh đã xử lý) |
 
 ---
 
@@ -176,11 +186,14 @@ python run_eda_visualization.py
 ### Configuration
 - `requirements.txt` - Python dependencies
 - `.gitignore` - Git ignore patterns
-- `configs/model_config.yaml` - Model config
+- `configs/model_config.yaml` - Model config (placeholder)
 
-### Runner Scripts
-- `run_phase1_pipeline.py` - Phase 1 end-to-end test
-- `run_eda_visualization.py` - EDA visualization
+---
+
+> **Lịch sử cleanup (commit `70691e2` - 2026-10-11):** Các runner scripts
+> tạm thời (`run_phase1_pipeline.py`, `run_eda_visualization.py`) đã bị xóa
+> vì pipeline chạy ổn định, không cần wrapper. Để chạy lại Phase 1, dùng
+> module trực tiếp (xem **How to Run** ở trên).
 
 ---
 
