@@ -23,6 +23,11 @@ from .hyperparameter_tuning import (
     results_to_markdown,
     save_results,
 )
+from .callbacks import EarlyStopping
+from .losses import create_loss
+from .optimizers import create_optimizer
+from .trainer import Trainer
+from .visualizer import TrainingVisualizer
 
 __all__ = [
     "HyperparameterTuner",
@@ -32,4 +37,9 @@ __all__ = [
     "best_result",
     "results_to_markdown",
     "save_results",
+    "EarlyStopping",
+    "Trainer",
+    "TrainingVisualizer",
+    "create_loss",
+    "create_optimizer",
 ]

@@ -1,13 +1,23 @@
-# Model configuration - placeholder
+# Model and training configuration for the Người 2 pipeline.
 model:
-  name: baseline_mlp
-  input_size: 784
-  hidden_sizes: [256, 128]
+  name: simple_cnn
+  dropout: 0.5
   num_classes: 10
-  dropout: 0.2
 
 training:
-  epochs: 10
-  batch_size: 64
+  epochs: 15
+  batch_size: 128
   learning_rate: 0.001
   optimizer: adam
+  loss: cross_entropy
+  weight_decay: 0.0
+  device: auto
+  seed: 42
+  num_workers: 0
+  augment: false
+
+early_stopping:
+  monitor: val_loss
+  mode: min
+  patience: 5
+  min_delta: 0.0001

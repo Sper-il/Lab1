@@ -89,9 +89,13 @@ data/processed/*
 !data/processed/.gitkeep
 models/checkpoints/*
 !models/checkpoints/.gitkeep
+!models/checkpoints/trained_model.pt
 logs/*.log
 results/runs/*
 !results/runs/.gitkeep
+!results/runs/training_history.json
+!results/runs/loss_curve.png
+!results/runs/accuracy_curve.png
 logs/
 
 # OS

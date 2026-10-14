@@ -1,9 +1,9 @@
 # Progress Status - FashionMNIST PyTorch Project
 
-**Last Updated:** 2026-10-12 13:15
-**Project Status:** Phase 2 IN PROGRESS — Người 1 ✅ DONE (real results)
-**Current Milestone:** Người 1: Network + Hyperparameter Experiment ✅
-**Last Run:** Grid search 8 trials + Real training 3 epochs at 13:15 ✅ (val_acc=90.12% on real training, 90.53% in grid search)
+**Last Updated:** 2026-10-14 16:52
+**Project Status:** Phase 2 IN PROGRESS — Người 1 ✅ DONE; Người 2 ✅ DONE (full training and handoff artifacts); Người 3 pending
+**Current Milestone:** Người 2: Training Loop + Loss Visualization ✅ COMPLETE
+**Last Run:** Official full training 15 epochs — best epoch 11, val_loss=0.215334, val_acc=92.88%; last epoch 15, val_acc=93.03%
 
 ---
 
@@ -149,9 +149,9 @@
 | HyperparameterTuner | `src/training/hyperparameter_tuning.py` | ✅ Complete | **Người 1** |
 | HyperoptScheduler | `src/training/hyperopt_scheduler.py` | ✅ Complete | **Người 1** |
 | `run_experiments.py` | `run_experiments.py` | ✅ Complete | **Người 1** entry point |
-| Trainer | `src/training/trainer.py` | ⏳ Empty | **Người 2** |
-| Callbacks | `src/training/callbacks.py` | ⏳ Empty | **Người 2** |
-| Visualizer (loss) | `src/training/visualizer.py` | ⏳ Empty | **Người 2** |
+| Trainer | `src/training/trainer.py` | ✅ Complete | **Người 2** |
+| Callbacks | `src/training/callbacks.py` | ✅ Complete | **Người 2** |
+| Visualizer (loss) | `src/training/visualizer.py` | ✅ Complete | **Người 2** |
 | Evaluator | `src/evaluation/evaluator.py` | ⏳ Empty | **Người 3** |
 | Error Analysis | `src/evaluation/error_analysis.py` | ⏳ Empty | **Người 3** |
 | Model I/O | `src/evaluation/model_io.py` | ⏳ Empty | **Người 3** |
@@ -159,7 +159,29 @@
 
 ---
 
+## Active Module: Người 2 — Training Loop + Loss Visualization
+
+- **Describe** — Huấn luyện `simple_cnn` bằng pipeline forward → loss → backward → optimizer và sinh biểu đồ loss/accuracy.
+- **Goal / purpose** — Bàn giao best checkpoint, last checkpoint, history và biểu đồ cho Người 3.
+- **Pipeline** — YAML/CLI config → data loaders → model factory → Trainer → callbacks/checkpoints → JSON/PNG artifacts.
+- **How / experiment plan (sub-tasks)**
+  - [x] Implement training loop và validation có weighted metrics.
+  - [x] Implement early stopping, checkpoint và khôi phục best weights.
+  - [x] Chạy test suite, full training và kiểm tra artifacts.
+- **Status** — Describe ✅ / Generate ✅ / Review ✅ / Run ✅ / Test ✅ / Refactor ✅ / Commit ⏳ (chưa commit tài liệu này).
+- **Last run** — `python main.py`, 15 epochs; best epoch 11, `val_loss=0.215334`; last epoch 15.
+- **DoD checklist** — Xem mục `Definition of Done` bên dưới; chỉ còn bước commit và nghiệm thu cuối.
+
 ## Module Log
+
+| # | Module | Ngày | Status | Commit | Ghi chú |
+|---|--------|------|--------|--------|---------|
+| 0 | Scaffold và Phase 1 data preparation | 2026-10-11 | ✅ | — | Lịch sử chi tiết được giữ trong mục Historical Module Log. |
+| 1 | Người 1 — Models + Hyperparameter | 2026-10-12 | ✅ | — | Best config: `simple_cnn`, Adam, `lr=0.001`. |
+| 2 | Người 2 — Training + Visualization | 2026-10-14 | ✅ | — | 27 tests passed; full run 15 epochs; artifacts đã bàn giao. |
+| 3 | Người 3 — Evaluation + Save/Load + Display | — | ⏳ | — | Chờ tiếp nhận checkpoint và history từ Người 2. |
+
+## Historical Module Log
 
 | Date | Module | Action | Result |
 |------|--------|--------|--------|
@@ -186,6 +208,16 @@
 
 ## Decisions Log
 
+| Ngày | Quyết định | Lựa chọn khác | Lý do |
+|------|------------|---------------|------|
+| 2026-10-11 | Dùng cấu trúc module, stratified split, seed 42 và normalize FashionMNIST | Cấu trúc phẳng, split ngẫu nhiên, seed khác | Dễ bảo trì, giữ phân phối lớp và tái lập kết quả. |
+| 2026-10-11 | Chạy CPU khi CUDA không khả dụng | Ép dùng CUDA | Môi trường hiện tại không có CUDA; CPU vẫn đáp ứng FashionMNIST. |
+| 2026-10-14 | Dùng cấu hình bàn giao của Người 1: `simple_cnn`, Adam, `lr=0.001`, batch `128`, dropout `0.5` | Đổi architecture hoặc hyperparameter | Giữ nhất quán với kết quả lựa chọn model của Người 1. |
+| 2026-10-14 | Entry point cấp cao là `main.py`, gọi orchestration `run_training.py` | Gọi trực tiếp `run_training` từ bên ngoài | Chạy toàn bộ pipeline bằng một lệnh và giữ orchestration tách module. |
+| 2026-10-14 | Chọn best theo `val_loss`, `patience=5`, `min_delta=0.0001`; lưu cả best và last checkpoint | Chỉ theo dõi accuracy hoặc chỉ lưu một checkpoint | `val_loss` ổn định hơn để phát hiện ngừng cải thiện và hỗ trợ khôi phục model tốt nhất. |
+
+## Historical Decisions Log
+
 ```
 [2026-10-11 22:30] Decision: Use modular folder structure | Reasoning: Separation of concerns, easier to test and maintain
 [2026-10-11 22:30] Decision: Use stratified split | Reasoning: Preserve class distribution in train/val/test
@@ -198,13 +230,31 @@
 
 ---
 
-## Technical Risks
+## Risks & Mitigations
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|------------|--------|------------|
-| Overfitting | Medium | High | Add dropout, early stopping (Phase 2+) |
-| Slow training on CPU | High | Medium | Use smaller model, limit epochs |
-| Poor generalization | Medium | High | Use validation set, data augmentation |
+| Rủi ro | Khả năng | Tác động | Giảm thiểu | Phát hiện |
+|--------|----------|----------|------------|-----------|
+| Overfitting | Medium | High | Dropout, early stopping, chọn best theo `val_loss` | So sánh train/validation curves |
+| Slow training on CPU | High | Medium | Giới hạn epoch hợp lý, dùng model nhỏ | Theo dõi thời gian từng epoch |
+| Poor generalization | Medium | High | Validation set, đánh giá test và per-class ở Người 3 | Test accuracy và confusion matrix |
+
+## Open Questions
+
+- [ ] Người 3 đã hoàn tất evaluation, save/load và predicted-vs-actual chưa?
+- [ ] Full pipeline integration test và báo cáo tổng hợp đã hoàn tất chưa?
+- [x] Người dùng đã nghiệm thu kết quả Người 2.
+- [x] Đã được phép xóa spec/plan triển khai sau khi chuyển nội dung cần thiết vào báo cáo.
+
+## Definition of Done (áp dụng cho module Người 2)
+
+- [x] Đúng yêu cầu training loop và visualize loss trong kế hoạch.
+- [x] Code chạy end-to-end bằng `python main.py`.
+- [x] Unit/integration tests pass: `27 passed`.
+- [x] `last_model.pt` được đánh dấu local-only và không đưa vào artifact tracked.
+- [x] Code đã được self-review và review cuối cho path CPU/default.
+- [x] Có thể giải thích pipeline, cấu hình và semantics best/last checkpoint.
+- [x] `progress_status.md` và báo cáo Người 2 đã cập nhật.
+- [ ] Commit Conventional Commit cho thay đổi tài liệu này.
 
 ---
 
@@ -229,11 +279,14 @@
   - [x] Bug fix: split.py import path + stratified shuffle
   - [x] `docs/TEAM_GUIDE.md` — hướng dẫn cho cả team
   - [x] `docs/reports/nguoi1_models_report.md` — báo cáo chi tiết
-- [ ] **Người 2: Training Loop + Visualize Loss** ⏳ CHƯA LÀM
-  - [ ] Training loop (forward, loss, backward, optimize) → `src/training/trainer.py`
-  - [ ] Callbacks → `src/training/callbacks.py` (early stopping, checkpoint)
-  - [ ] Loss curve visualizer → `src/training/visualizer.py`
-  - [ ] `main.py` entry point cho Người 2
+- [x] **Người 2: Training Loop + Visualize Loss** ⏳ HOÀN THÀNH
+  - [x] Training loop (forward, loss, backward, optimize) → `src/training/trainer.py`
+  - [x] Callbacks → `src/training/callbacks.py` (early stopping, checkpoint)
+  - [x] Loss/optimizer factories → `src/training/losses.py`, `src/training/optimizers.py`
+  - [x] Loss curve visualizer → `src/training/visualizer.py`
+  - [x] Orchestration và exports → `run_training.py`, `src/training/__init__.py`
+  - [x] `main.py` entry point cho Người 2
+  - [x] Training tests, full run và artifacts bàn giao
 - [ ] **Người 3: Evaluate + Save/Load + Display** ⏳ CHƯA LÀM
   - [ ] Model evaluation (accuracy ≥ 90%) → `src/evaluation/evaluator.py`
   - [ ] Save/Load model → `src/evaluation/model_io.py`
@@ -270,31 +323,31 @@
 
 ## Next Steps (Phase 2 - 3 người, align với đề)
 
-### 🔴 Người 2: Training Loop + Visualize Loss — BẮT ĐẦU NGAY
+### ✅ Người 2: Training Loop + Visualize Loss — HOÀN THÀNH
 
-Cần implement:
+Đã triển khai:
 
-1. **`src/training/trainer.py`** — training loop chính:
+1. **Training core** — `src/training/trainer.py`, `src/training/losses.py`, `src/training/optimizers.py`:
    - `train_one_epoch(model, loader, optimizer, device)` → trả train_loss, train_acc
    - `evaluate(model, loader, device)` → trả val_acc
    - Full training: loop nhiều epochs, record history
    - Dùng `ModelFactory.create("simple_cnn")` + config từ Người 1
 
-2. **`src/training/callbacks.py`** — callbacks:
+2. **Callbacks** — `src/training/callbacks.py`:
    - `EarlyStopping`: monitor val_loss, patience=5
    - `Checkpoint`: save best model
    - `Logger`: record metrics per epoch
 
-3. **`src/training/visualizer.py`** — vẽ loss/acc curve:
+3. **Visualization** — `src/training/visualizer.py`:
    - Train vs val loss per epoch
    - Train vs val accuracy per epoch
 
-4. **`main.py`** — entry point cho training:
+4. **Orchestration và exports** — `run_training.py`, `src/training/__init__.py`, `main.py`:
    ```powershell
-   python main.py --model simple_cnn --epochs 10 --lr 0.001 --optimizer adam
+   python main.py
    ```
 
-### 🔴 Người 3: Evaluate + Save/Load + Display — CHỜ NGƯỜI 2 XONG
+### 🔴 Người 3: Evaluate + Save/Load + Display — SẴN SÀNG NHẬN BÀN GIAO
 
 1. **`src/evaluation/evaluator.py`** — đánh giá model:
    - Load best checkpoint
@@ -347,9 +400,10 @@ Xem chi tiết tại `docs/PHASE2_PLAN.md` và `docs/reports/nguoi1_models_repor
 - **Config:** `configs/hyperopt_config.yaml`
 - **Entry point:** `run_experiments.py`
 
-### Phase 2 Người 2 artifacts (pending)
-- Trained checkpoint: `models/checkpoints/best_model.pt`
-- Training log: `logs/training.log`
+### Phase 2 Người 2 artifacts (complete)
+- Best checkpoint: `models/checkpoints/trained_model.pt`
+- Last checkpoint: `models/checkpoints/last_model.pt` (local-only)
+- Full history: `results/runs/training_history.json`
 - Loss curves: `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`
 - Report: `docs/reports/nguoi2_training_report.md`
 
@@ -358,3 +412,61 @@ Xem chi tiết tại `docs/PHASE2_PLAN.md` và `docs/reports/nguoi1_models_repor
 - Confusion matrix: `results/runs/confusion_matrix.png`
 - Error analysis: `results/runs/error_samples.png`
 - Report: `docs/reports/nguoi3_evaluation_report.md`
+
+
+---
+
+## Người 2 completion addendum — 2026-10-14
+
+### Implementation and verification
+
+- [x] Training loop: forward → CrossEntropyLoss → backward → optimizer step.
+- [x] Validation with eval mode and no-grad; weighted loss/accuracy.
+- [x] Early stopping: monitor `val_loss`, mode `min`, patience `5`, min_delta `0.0001`.
+- [x] Best/last checkpoints and best-weight restoration.
+- [x] Loss and accuracy plots, JSON history and metadata.
+- [x] YAML loader, CLI overrides, seed/device handling and public exports.
+- [x] `python -m pytest tests/training -v` → **27 passed**.
+
+### Effective configuration
+
+```yaml
+model: simple_cnn
+dropout: 0.5
+epochs: 15
+batch_size: 128
+learning_rate: 0.001
+optimizer: adam
+loss: cross_entropy
+weight_decay: 0.0
+device: auto  # resolved to CPU because CUDA is unavailable
+seed: 42
+num_workers: 0
+augment: false
+early_stopping: val_loss / min / patience=5 / min_delta=0.0001
+```
+
+### Official full run
+
+Command: `python main.py`
+
+- Completed 15/15 epochs.
+- Best checkpoint: epoch 11, `val_loss=0.215334`, `val_acc=92.88%`.
+- Last checkpoint: epoch 15, `val_loss=0.219415`, `val_acc=93.03%`.
+- Final training accuracy: `94.93%`.
+
+### Handoff artifacts
+
+- `models/checkpoints/trained_model.pt`
+- `models/checkpoints/last_model.pt` (local-only)
+- `results/runs/training_history.json`
+- `results/runs/loss_curve.png`
+- `results/runs/accuracy_curve.png`
+- `docs/reports/nguoi2_training_report.md`
+
+### Decisions log
+
+- [2026-10-14] Người 2 full-train dùng cấu hình đã bàn giao: simple_cnn, Adam, lr=0.001, batch=128, dropout=0.5.
+- [2026-10-14] Dùng `main.py` làm entry point; `run_training.py` là orchestration module được gọi từ main.
+- [2026-10-14] Chọn best theo `val_loss`, lưu cả best và last checkpoint, khôi phục best weights.
+- [2026-10-14] Người 2 implementation and full run complete; Người 2 đã được nghiệm thu, Người 3 evaluation và final project acceptance remain pending.
