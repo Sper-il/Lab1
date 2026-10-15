@@ -15,7 +15,8 @@ def main():
     
     # 1. Load test data từ Phase 1
     data_manager = DataSplitManager()
-    _, _, test_loader = data_manager.get_loaders(batch_size=64)
+    data_manager.load_and_split()
+    _, _, test_loader = data_manager.create_loaders(batch_size=64)
     
     # 2. Khởi tạo model architecture (ví dụ: simple_cnn)
     model = ModelFactory.create('simple_cnn')

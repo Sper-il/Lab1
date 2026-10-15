@@ -30,6 +30,6 @@ class ErrorAnalyzer:
         
         print(f"\n--- Top {top_k} Most Confused Class Pairs ---")
         for i, (pair, count) in enumerate(sorted_confusions[:top_k], 1):
-            print(f"{i}. True: '{pair[0]}' --> Predicted as '{pair[1]}': {count} lần")
+            print(f"{i}. True: '{pair[0]}' --> Predicted as '{pair[1]}': {count} times")
             
         return sorted_confusions
