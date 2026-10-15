@@ -1,9 +1,9 @@
 # Progress Status - FashionMNIST PyTorch Project
 
-**Last Updated:** 2026-10-14 16:52
-**Project Status:** Phase 2 IN PROGRESS — Người 1 ✅ DONE; Người 2 ✅ DONE (full training and handoff artifacts); Người 3 pending
-**Current Milestone:** Người 2: Training Loop + Loss Visualization ✅ COMPLETE
-**Last Run:** Official full training 15 epochs — best epoch 11, val_loss=0.215334, val_acc=92.88%; last epoch 15, val_acc=93.03%
+**Last Updated:** 2026-10-15 16:35
+**Project Status:** Phase 2 COMPLETE — Người 1 ✅ DONE; Người 2 ✅ DONE; Người 3 ✅ DONE
+**Current Milestone:** Full Pipeline Integration — Test Accuracy: 92.10%
+**Last Run:** Official full training 15 epochs — best epoch 11, val_loss=0.215334, val_acc=92.88%; last epoch 15, val_acc=93.03%; Evaluation test_acc=92.10%
 
 ---
 
@@ -152,25 +152,28 @@
 | Trainer | `src/training/trainer.py` | ✅ Complete | **Người 2** |
 | Callbacks | `src/training/callbacks.py` | ✅ Complete | **Người 2** |
 | Visualizer (loss) | `src/training/visualizer.py` | ✅ Complete | **Người 2** |
-| Evaluator | `src/evaluation/evaluator.py` | ⏳ Empty | **Người 3** |
-| Error Analysis | `src/evaluation/error_analysis.py` | ⏳ Empty | **Người 3** |
-| Model I/O | `src/evaluation/model_io.py` | ⏳ Empty | **Người 3** |
+| Evaluator | `src/evaluation/evaluator.py` | ✅ Complete | **Người 3** |
+| Error Analysis | `src/evaluation/error_analysis.py` | ✅ Complete | **Người 3** |
+| Model I/O | `src/evaluation/model_io.py` | ✅ Complete | **Người 3** |
+| Confusion Matrix | `src/evaluation/confusion_matrix.py` | ✅ Complete | **Người 3** |
+| Prediction Visualizer | `src/evaluation/visualizer.py` | ✅ Complete | **Người 3** |
 | Experiment Tracker | `src/evaluation/experiment_tracker.py` | ⏳ Empty | **Người 3** |
 
 ---
 
-## Active Module: Người 2 — Training Loop + Loss Visualization
+## Active Module: Người 3 — Evaluation + Save/Load + Display
 
-- **Describe** — Huấn luyện `simple_cnn` bằng pipeline forward → loss → backward → optimizer và sinh biểu đồ loss/accuracy.
-- **Goal / purpose** — Bàn giao best checkpoint, last checkpoint, history và biểu đồ cho Người 3.
-- **Pipeline** — YAML/CLI config → data loaders → model factory → Trainer → callbacks/checkpoints → JSON/PNG artifacts.
+- **Describe** — Đánh giá model đã train trên test set: accuracy, precision, recall, F1, confusion matrix, error analysis, predicted vs actual.
+- **Goal / purpose** — Hoàn thành Phase 2 và tạo báo cáo Người 3.
+- **Pipeline** — Load checkpoint → ModelEvaluator → ConfusionMatrixPlotter → ErrorAnalyzer → PredictionVisualizer → Final model save.
 - **How / experiment plan (sub-tasks)**
-  - [x] Implement training loop và validation có weighted metrics.
-  - [x] Implement early stopping, checkpoint và khôi phục best weights.
-  - [x] Chạy test suite, full training và kiểm tra artifacts.
-- **Status** — Describe ✅ / Generate ✅ / Review ✅ / Run ✅ / Test ✅ / Refactor ✅ / Commit ⏳ (chưa commit tài liệu này).
-- **Last run** — `python main.py`, 15 epochs; best epoch 11, `val_loss=0.215334`; last epoch 15.
-- **DoD checklist** — Xem mục `Definition of Done` bên dưới; chỉ còn bước commit và nghiệm thu cuối.
+  - [x] Load best checkpoint từ Người 2 (`trained_model.pt`).
+  - [x] Compute test metrics: accuracy, precision, recall, F1.
+  - [x] Analyze common confusions (Shirt ↔ T-shirt/top là nhiều nhất).
+  - [x] Generate predictions plot và confusion matrix.
+  - [x] Save final model với metrics.
+- **Status** — Describe ✅ / Implement ✅ / Run ✅ / Commit ✅
+- **Last run** — `python src/evaluation/run_evalution.py`, test_acc=92.10%, precision=92.11%, recall=92.10%, f1=92.09%.
 
 ## Module Log
 
@@ -179,7 +182,7 @@
 | 0 | Scaffold và Phase 1 data preparation | 2026-10-11 | ✅ | — | Lịch sử chi tiết được giữ trong mục Historical Module Log. |
 | 1 | Người 1 — Models + Hyperparameter | 2026-10-12 | ✅ | — | Best config: `simple_cnn`, Adam, `lr=0.001`. |
 | 2 | Người 2 — Training + Visualization | 2026-10-14 | ✅ | — | 27 tests passed; full run 15 epochs; artifacts đã bàn giao. |
-| 3 | Người 3 — Evaluation + Save/Load + Display | — | ⏳ | — | Chờ tiếp nhận checkpoint và history từ Người 2. |
+| 3 | Người 3 — Evaluation + Save/Load + Display | 2026-10-15 | ✅ | 232adce | test_acc=92.10%, confusion matrix, predictions plot |
 
 ## Historical Module Log
 
@@ -240,10 +243,11 @@
 
 ## Open Questions
 
-- [ ] Người 3 đã hoàn tất evaluation, save/load và predicted-vs-actual chưa?
+- [x] Người 3 đã hoàn tất evaluation, save/load và predicted-vs-actual.
 - [ ] Full pipeline integration test và báo cáo tổng hợp đã hoàn tất chưa?
 - [x] Người dùng đã nghiệm thu kết quả Người 2.
 - [x] Đã được phép xóa spec/plan triển khai sau khi chuyển nội dung cần thiết vào báo cáo.
+- [x] Người 3 evaluation đã hoàn thành với test_acc=92.10%.
 
 ## Definition of Done (áp dụng cho module Người 2)
 
@@ -254,7 +258,7 @@
 - [x] Code đã được self-review và review cuối cho path CPU/default.
 - [x] Có thể giải thích pipeline, cấu hình và semantics best/last checkpoint.
 - [x] `progress_status.md` và báo cáo Người 2 đã cập nhật.
-- [ ] Commit Conventional Commit cho thay đổi tài liệu này.
+- [x] Commit Conventional Commit cho thay đổi tài liệu này.
 
 ---
 
@@ -279,7 +283,7 @@
   - [x] Bug fix: split.py import path + stratified shuffle
   - [x] `docs/TEAM_GUIDE.md` — hướng dẫn cho cả team
   - [x] `docs/reports/nguoi1_models_report.md` — báo cáo chi tiết
-- [x] **Người 2: Training Loop + Visualize Loss** ⏳ HOÀN THÀNH
+- [x] **Người 2: Training Loop + Visualize Loss** ✅ DONE
   - [x] Training loop (forward, loss, backward, optimize) → `src/training/trainer.py`
   - [x] Callbacks → `src/training/callbacks.py` (early stopping, checkpoint)
   - [x] Loss/optimizer factories → `src/training/losses.py`, `src/training/optimizers.py`
@@ -287,11 +291,14 @@
   - [x] Orchestration và exports → `run_training.py`, `src/training/__init__.py`
   - [x] `main.py` entry point cho Người 2
   - [x] Training tests, full run và artifacts bàn giao
-- [ ] **Người 3: Evaluate + Save/Load + Display** ⏳ CHƯA LÀM
-  - [ ] Model evaluation (accuracy ≥ 90%) → `src/evaluation/evaluator.py`
-  - [ ] Save/Load model → `src/evaluation/model_io.py`
-  - [ ] Display predicted vs actual images → `src/training/visualizer.py` hoặc evaluator
-- [ ] Final report & visualization
+- [x] **Người 3: Evaluate + Save/Load + Display** ✅ DONE
+  - [x] Model evaluation (test_acc=92.10%) → `src/evaluation/evaluator.py`
+  - [x] Save/Load model → `src/evaluation/model_io.py`
+  - [x] Confusion matrix → `src/evaluation/confusion_matrix.py`
+  - [x] Error analysis → `src/evaluation/error_analysis.py`
+  - [x] Predicted vs actual images → `src/evaluation/visualizer.py`
+  - [x] `src/evaluation/run_evalution.py` entry point
+- [ ] **Final report & visualization** ⏳ PENDING
 
 ---
 

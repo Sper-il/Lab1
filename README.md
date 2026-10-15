@@ -132,12 +132,12 @@ e:\lab1/
 3. **Preprocessing** → Apply transforms (normalize, augment)
 4. **Data Split** → Train/validation/test split
 
-### Phase 2: Model Development ⏳ PENDING
+### Phase 2: Model Development ✅ COMPLETE
 5. **Baseline Model** → Simple neural network baseline
 6. **Model Selection** → Compare architectures
 7. **Hyperparameter Tuning** → Optimize learning rate, batch size, etc.
 
-### Phase 3: Training & Evaluation ⏳ PENDING
+### Phase 3: Training & Evaluation ✅ COMPLETE
 8. **Training** → Full model training with logging
 9. **Evaluation** → Metrics computation and analysis
 10. **Error Analysis** → Investigate misclassifications
@@ -162,14 +162,14 @@ python run_phase1_pipeline.py
 python run_eda_visualization.py
 ```
 
-### Run Training (Phase 2 - Coming Soon)
+### Run Training (Phase 2)
 ```bash
 python main.py --epochs 10 --batch_size 64 --lr 0.001
 ```
 
-### Run Evaluation (Phase 2 - Coming Soon)
+### Run Evaluation (Phase 3)
 ```bash
-python src/evaluation/evaluate_model.py --model models/checkpoints/best_model.pt
+$env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
 ```
 
 ## 9. Current Results (Phase 1)
@@ -191,11 +191,32 @@ python src/evaluation/evaluate_model.py --model models/checkpoints/best_model.pt
 - `results/runs/pixel_histogram.png` - Pixel intensity distribution
 - `results/runs/per_class_samples.png` - One sample per class
 
-## 10. Expected Results (Phase 2+)
+## 11. Current Results
 
-- **Baseline Accuracy:** ~85%
-- **Optimized Accuracy:** ~90%+
-- **Training Time:** 5-15 minutes per epoch (CPU)
+| Metric | Value |
+|--------|-------|
+| **Test Accuracy** | **92.10%** |
+| Precision (macro) | 92.11% |
+| Recall (macro) | 92.10% |
+| F1-Score (macro) | 92.09% |
+| Validation Accuracy | 92.88% (best), 93.03% (last) |
+| Best Epoch | 11/15 |
+| Training Time | ~60s/epoch (CPU) |
+
+### Top Confused Classes
+| True Class | → Predicted | Count |
+|------------|-------------|-------|
+| Shirt | T-shirt/top | 95 |
+| T-shirt/top | Shirt | 90 |
+| Shirt | Pullover | 64 |
+| Coat | Pullover | 63 |
+| Coat | Shirt | 55 |
+
+### Artifacts
+- **Training curves:** `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`
+- **Confusion matrix:** `results/runs/confusion_matrix.png`
+- **Predictions plot:** `results/runs/predictions.png`
+- **Final model:** `models/checkpoints/final_model.pt`
 
 ## 11. Documentation
 
