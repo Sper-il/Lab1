@@ -1,4 +1,4 @@
-# FashionMNIST Classification — Hướng Dẫn Chi Tiết Từ A Đến Z
+# FashionMNIST Classification — Quy Trình Thực Hiện Dự Án
 
 **Tác giả:** Sper-il  
 **Ngày:** 2026-10-15  
@@ -27,8 +27,8 @@
 
 Cho một bức ảnh xám 28×28 pixel của một món đồ thời trang, máy tính phải trả lời: "Đây là món gì?" trong 10 loại sau:
 
-| Mã | Tên loại | Ví dụ |
-|----|----------|-------|
+| Mã | Tên loại | Biểu tượng |
+|----|----------|------------|
 | 0 | Áo thun | 👕 |
 | 1 | Quần dài | 👖 |
 | 2 | Áo len | 🧥 |
@@ -72,112 +72,51 @@ Cho một bức ảnh xám 28×28 pixel của một món đồ thời trang, má
 
 **Mục tiêu:** Trước khi train model, phải hiểu dữ liệu mình có.
 
-**Cách làm:**
+**Các công việc thực hiện:**
 
-#### Bước 1.1: Tải dữ liệu
+- **Tải dataset FashionMNIST** thông qua `torchvision.datasets.FashionMNIST`
+- **Tính toán thống kê cơ bản**: Mean, Std, Min, Max của tất cả pixel
+- **Vẽ biểu đồ phân bố lớp** để kiểm tra cân bằng dữ liệu
+- **Trực quan hóa mẫu ảnh** từ mỗi lớp để hiểu trực quan
+- **Phân tích histogram pixel** để xem phân bố cường độ
 
-```python
-from torchvision import datasets, transforms
+**Các kỹ thuật áp dụng:**
 
-# Tải FashionMNIST
-train_data = datasets.FashionMNIST(
-    root='./data/raw',
-    train=True,
-    download=True,
-    transform=transforms.ToTensor()
-)
-```
+| Kỹ thuật | Mục đích | Cách áp dụng |
+|----------|----------|---------------|
+| **Thống kê mô tả** | Hiểu phân bố giá trị | Tính mean, std, min, max |
+| **Data visualization** | "Nhìn" dữ liệu bằng mắt | Dùng Matplotlib/Seaborn vẽ biểu đồ |
+| **Frequency analysis** | Kiểm tra cân bằng lớp | Đếm số mẫu mỗi lớp |
 
-**Giải thích:**
-- `root='./data/raw'`: Lưu dữ liệu vào thư mục `data/raw`
-- `train=True`: Lấy tập huấn luyện
-- `download=True`: Tự động tải nếu chưa có
-- `transforms.ToTensor()`: Chuyển ảnh từ dạng PIL Image sang Tensor (dạng số để máy tính xử lý)
+**Kết quả thu được:**
 
-#### Bước 1.2: Thống kê cơ bản
-
-```python
-import torch
-
-# Lấy tất cả ảnh
-all_images = torch.stack([img for img, _ in train_data])
-
-# Tính toán
-print(f"Kích thước ảnh: {all_images.shape}")  # [60000, 1, 28, 28]
-print(f"Giá trị nhỏ nhất: {all_images.min()}")  # 0.0
-print(f"Giá trị lớn nhất: {all_images.max()}")  # 1.0
-print(f"Trung bình: {all_images.mean():.4f}")   # 0.2860
-print(f"Độ lệch chuẩn: {all_images.std():.4f}") # 0.3530
-```
-
-**Tại sao quan trọng?**
-- Biết được giá trị pixel nằm trong khoảng [0, 1] → đã được chuẩn hóa
-- Mean và Std giúp ta biết cách chuẩn hóa dữ liệu mới
-
-#### Bước 1.3: Vẽ biểu đồ phân bố lớp
-
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Đếm số ảnh mỗi lớp
-labels = [label for _, label in train_data]
-class_names = ['T-shirt', 'Trouser', 'Pullover', 'Dress', 'Coat',
-               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
-
-plt.figure(figsize=(10, 5))
-sns.countplot(x=labels)
-plt.title('Số lượng ảnh mỗi lớp')
-plt.show()
-```
-
-**Kỹ thuật áp dụng:**
-- **Data visualization**: Dùng biểu đồ để "nhìn" dữ liệu
-- **Statistical analysis**: Tính mean, std, count để hiểu phân bố
-
-**Kết quả:** 6,000 ảnh/lớp → **dữ liệu cân bằng hoàn hảo**, không cần xử lý mất cân bằng.
+- 60,000 mẫu huấn luyện, **cân bằng hoàn hảo** (6,000 ảnh/lớp)
+- Mean = 0.286, Std = 0.353
+- Giá trị pixel nằm trong khoảng [0, 1] → đã được chuẩn hóa sẵn
+- Không có dữ liệu thiếu hoặc hỏng
 
 ---
 
 ### 2.2 Bước 2 — Làm sạch dữ liệu
 
-**Vấn đề:** Dữ liệu thực tế thường có lỗi (ảnh hỏng, nhãn sai, giá trị NaN).
+**Mục tiêu:** Đảm bảo dữ liệu đầu vào "sạch" trước khi xử lý tiếp.
 
-**Cách làm:**
+**Các công việc thực hiện:**
 
-```python
-import numpy as np
+- **Kiểm tra giá trị NaN/Inf** trong tất cả ảnh
+- **Xác thực kích thước ảnh** đúng chuẩn 28×28×1
+- **Kiểm tra phạm vi nhãn** hợp lệ (0-9)
+- **Đảm bảo không có ảnh hỏng** hoặc không đọc được
 
-def clean_data(images, labels):
-    """Kiểm tra và loại bỏ dữ liệu lỗi"""
-    valid_indices = []
-    
-    for i in range(len(images)):
-        img = images[i]
-        label = labels[i]
-        
-        # Kiểm tra NaN/Inf
-        if torch.isnan(img).any() or torch.isinf(img).any():
-            continue
-        
-        # Kiểm tra kích thước ảnh
-        if img.shape != (1, 28, 28):
-            continue
-        
-        # Kiểm tra nhãn hợp lệ (0-9)
-        if label < 0 or label > 9:
-            continue
-        
-        valid_indices.append(i)
-    
-    return images[valid_indices], labels[valid_indices]
-```
+**Các kỹ thuật áp dụng:**
 
-**Kỹ thuật áp dụng:**
-- **Data validation**: Kiểm tra tính hợp lệ của dữ liệu
-- **Defensive programming**: Viết code an toàn với mọi loại input
+| Kỹ thuật | Mục đích |
+|----------|----------|
+| **Data validation** | Kiểm tra tính hợp lệ của dữ liệu |
+| **Defensive programming** | Viết code an toàn với mọi loại input |
+| **Quality assurance** | Đảm bảo chất lượng dữ liệu đầu vào |
 
-**Kết quả:** 60,000/60,000 mẫu hợp lệ (100%) — FashionMNIST là dataset sạch.
+**Kết quả:** 60,000/60,000 mẫu hợp lệ (100%) — FashionMNIST là dataset đã được làm sạch.
 
 ---
 
@@ -185,94 +124,76 @@ def clean_data(images, labels):
 
 **Mục tiêu:** Biến đổi dữ liệu về dạng phù hợp để model học tốt hơn.
 
-**Kỹ thuật 1: Chuẩn hóa (Normalization)**
+**Các công việc thực hiện:**
 
-**Vấn đề:** Giá trị pixel thô có phân bố không đều, làm model học chậm.
+- **Áp dụng Normalization** với mean=0.286 và std=0.353 đã tính từ EDA
+- **Sử dụng transforms pipeline** của torchvision để xử lý nhất quán
+- **Tắt data augmentation** ở giai đoạn này (chỉ dùng cơ bản)
 
-**Giải pháp:** Đưa về phân bố chuẩn (mean=0, std=1):
+**Các kỹ thuật áp dụng:**
 
-```python
-# Công thức: normalized = (pixel - mean) / std
-# mean = 0.2860, std = 0.3530
+#### 1. Normalization (Chuẩn hóa)
 
-normalize = transforms.Normalize(
-    mean=[0.2860],
-    std=[0.3530]
-)
-```
+**Công thức:** `normalized_pixel = (pixel - mean) / std`
 
 **Ví dụ cụ thể:**
 - Pixel gốc: 0.5
 - Sau chuẩn hóa: (0.5 - 0.286) / 0.353 = **0.606**
 
 **Tại sao cần chuẩn hóa?**
-1. **Tăng tốc độ hội tụ**: Gradient không bị "lệch" do giá trị lớn
-2. **Tránh overflow**: Giá trị lớn có thể gây tràn số
-3. **Cân bằng tầm quan trọng**: Mỗi pixel có "trọng số" ngang nhau
 
-**Pipeline đầy đủ:**
+| Lý do | Giải thích |
+|-------|-----------|
+| **Tăng tốc độ hội tụ** | Gradient không bị "lệch" do giá trị lớn |
+| **Tránh overflow** | Giá trị lớn có thể gây tràn số trong tính toán |
+| **Cân bằng tầm quan trọng** | Mỗi pixel có "trọng số" ngang nhau |
+| **Ổn định training** | Loss surface mượt hơn, dễ tối ưu |
 
-```python
-from torchvision import transforms
-
-train_transform = transforms.Compose([
-    transforms.ToTensor(),              # PIL → Tensor [0, 1]
-    transforms.Normalize(               # Chuẩn hóa về N(0, 1)
-        mean=[0.2860],
-        std=[0.3530]
-    )
-])
-```
+**Kết quả:** Mean ≈ 0, Std ≈ 1 sau khi chuẩn hóa → phân bố chuẩn.
 
 ---
 
 ### 2.4 Bước 4 — Chia dữ liệu (Train/Val/Test Split)
 
-**Mục tiêu:** Có 3 tập dữ liệu để train, đánh giá trong quá trình train, và test cuối cùng.
+**Mục tiêu:** Có 3 tập dữ liệu với vai trò khác nhau để train và đánh giá đúng cách.
 
 **Phân chia:**
 
 | Tập | Tỷ lệ | Số mẫu | Vai trò |
 |-----|-------|--------|---------|
-| **Train** | 90% | 54,000 | Dùng để train model |
+| **Train** | 90% | 54,000 | Dùng để train model (model học từ đây) |
 | **Validation** | 10% | 6,000 | Đánh giá trong khi train, chọn best model |
 | **Test** | 100% | 10,000 | Đánh giá cuối cùng, **không được dùng khi train** |
 
-**Code triển khai:**
-
-```python
-from sklearn.model_selection import train_test_split
-
-# Chia train và val
-train_idx, val_idx = train_test_split(
-    np.arange(60000),
-    test_size=0.1,           # 10% cho validation
-    random_state=42,         # Đảm bảo reproducibility
-    stratify=labels          # Giữ tỷ lệ các lớp
-)
-```
-
-**Kỹ thuật áp dụng:**
+**Các kỹ thuật áp dụng:**
 
 #### 1. Stratified Split (Phân tầng)
-- **Vấn đề:** Chia ngẫu nhiên có thể làm mất cân bằng lớp
-- **Giải pháp:** Đảm bảo tỷ lệ mỗi lớp trong train và val là như nhau
-- **Ví dụ:** Cả train và val đều có 600 ảnh/lớp
+- **Vấn đề:** Chia ngẫu nhiên có thể làm mất cân bằng lớp trong từng tập
+- **Giải pháp:** Đảm bảo tỷ lệ mỗi lớp trong train và val là giống nhau
+- **Ví dụ:** Cả train và val đều có đúng 600 ảnh/lớp
 
 #### 2. Random Seed = 42
 - **Vấn đề:** Mỗi lần chạy lại cho kết quả khác nhau
-- **Giải pháp:** Fix seed để kết quả reproducible
-- **42** là số "ma thuật" trong văn hóa pop (cũng là trong The Hitchhiker's Guide to the Galaxy)
+- **Giải pháp:** Fix seed để kết quả reproducible (tái tạo được)
+- **Ý nghĩa:** Người khác chạy lại code sẽ được cùng kết quả
 
-#### 3. Train/Val/Test tách biệt
+#### 3. Tách biệt 3 tập
 - **Train**: Model học từ dữ liệu này
 - **Validation**: Model không học, chỉ dùng để đánh giá trong quá trình train
-- **Test**: Giấu kín đến cuối cùng mới dùng → mô phỏng dữ liệu thực tế
+- **Test**: "Giấu kín" đến cuối cùng mới dùng → mô phỏng dữ liệu thực tế
 
 **Tại sao cần 3 tập?**
-- Nếu chỉ có train/test → model có thể "học thuộc" test set → đánh giá sai
-- Validation giúp chọn best model trong quá trình train
-- Test là "bài thi cuối kỳ" thực sự
+
+```
+Nếu chỉ có Train/Test:
+  → Model có thể "học thuộc" test set
+  → Đánh giá sai (overestimate accuracy)
+
+Giải pháp 3 tập:
+  → Train: model học
+  → Validation: chọn best model, điều chỉnh hyperparam
+  → Test: đánh giá khách quan cuối cùng
+```
 
 ---
 
@@ -280,41 +201,25 @@ train_idx, val_idx = train_test_split(
 
 ### 3.1 Bước 1 — Mô hình Baseline (MLP đơn giản)
 
-**Tại sao cần baseline?** Để biết "mức sàn" và so sánh với model phức tạp hơn.
+**Tại sao cần baseline?** Để biết "mức sàn" performance và làm điểm so sánh với model phức tạp hơn.
 
-**MLP là gì?** Multi-Layer Perceptron — mạng nơ-ron truyền thống, mỗi tầng kết nối đầy đủ.
-
-**Code:**
-
-```python
-import torch.nn as nn
-
-class BaselineMLP(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.flatten = nn.Flatten()         # 28x28 → 784
-        self.fc1 = nn.Linear(784, 256)      # Ẩn 1
-        self.fc2 = nn.Linear(256, 128)      # Ẩn 2
-        self.fc3 = nn.Linear(128, 10)       # Đầu ra (10 lớp)
-        self.relu = nn.ReLU()
-    
-    def forward(self, x):
-        x = self.flatten(x)    # [B, 1, 28, 28] → [B, 784]
-        x = self.relu(self.fc1(x))
-        x = self.relu(self.fc2(x))
-        x = self.fc3(x)        # Logits, chưa softmax
-        return x
-```
-
-**Giải thích từng thành phần:**
+**Kiến trúc BaselineMLP:**
 
 | Layer | Input → Output | Vai trò |
 |-------|---------------|---------|
-| `Flatten` | [B,1,28,28] → [B,784] | Trải phẳng ảnh 2D thành vector 1D |
-| `Linear(784,256)` | Vector 784 → 256 | Học 256 đặc trưng từ 784 pixel |
-| `ReLU` | f(x) = max(0, x) | Thêm phi tuyến (không dùng sigmoid vì vanishing gradient) |
-| `Linear(256,128)` | 256 → 128 | Tiếp tục nén thông tin |
-| `Linear(128,10)` | 128 → 10 | Cho ra "điểm" cho 10 lớp (logits) |
+| Flatten | [B,1,28,28] → [B,784] | Trải phẳng ảnh 2D thành vector 1D |
+| Linear + ReLU | 784 → 256 | Học 256 đặc trưng từ 784 pixel |
+| Linear + ReLU | 256 → 128 | Tiếp tục nén thông tin |
+| Linear | 128 → 10 | Cho ra "điểm" cho 10 lớp (logits) |
+
+**Các kỹ thuật áp dụng:**
+
+| Kỹ thuật | Giải thích |
+|----------|-----------|
+| **Flatten layer** | Chuyển tensor 2D thành vector 1D |
+| **Fully Connected (Linear)** | Mỗi nơ-ron kết nối với tất cả nơ-ron lớp trước |
+| **ReLU activation** | f(x) = max(0, x) — thêm phi tuyến, tránh vanishing gradient |
+| **Progressive dimension reduction** | 784 → 256 → 128 → 10 (nén dần thông tin) |
 
 **Tại sao chọn 256, 128?** Đây là các con số phổ biến, không quá lớn (tránh overfit) cũng không quá nhỏ (tránh underfit).
 
@@ -322,188 +227,168 @@ class BaselineMLP(nn.Module):
 
 ### 3.2 Bước 2 — Khám phá kiến trúc CNN
 
-**Vấn đề với MLP:** Xem mỗi pixel là độc lập, không hiểu cấu trúc 2D của ảnh.
+**Vấn đề với MLP:**
+- Xem mỗi pixel là độc lập → không hiểu cấu trúc 2D của ảnh
+- Số tham số lớn (vì fully connected)
+- Không có tính "translation invariance" (dịch chuyển ảnh → kết quả khác)
 
-**CNN là gì?** Convolutional Neural Network — mạng tích chập, học đặc trưng không gian.
+**Giải pháp: CNN (Convolutional Neural Network)**
 
 **Các thành phần chính của CNN:**
 
-#### Conv2d (Tích chập)
+#### 1. Conv2d (Tích chập) — Trích xuất đặc trưng không gian
 
-```python
-nn.Conv2d(
-    in_channels=1,      # Ảnh xám: 1 kênh
-    out_channels=32,    # Học 32 đặc trưng
-    kernel_size=3,      # Cửa sổ 3x3
-    stride=1,           # Bước nhảy 1
-    padding=1           # Padding để giữ kích thước
-)
-```
-
-**Conv2d hoạt động thế nào?**
-- Trượt một "cửa sổ" 3×3 trên ảnh
+**Cách hoạt động:**
+- Trượt một "cửa sổ" (kernel) trên ảnh
 - Mỗi vị trí: nhân từng phần tử rồi cộng lại
-- Mỗi filter học một pattern: góc, cạnh, texture...
+- Mỗi filter học một pattern: góc, cạnh, texture, hình dạng...
 
 **Ví dụ trực quan:**
 
 ```
-Ảnh gốc (6x6):          Filter (3x3):         Kết quả (4x4):
-┌─┬─┬─┬─┬─┬─┐          ┌─┬─┬─┐              ┌─┬─┬─┬─┐
-│1│2│3│4│5│6│          │1│0│-1│             │?│?│?│?│
-├─┼─┼─┼─┼─┼─┤          ├─┼─┼─┤             ├─┼─┼─┼─┤
-│7│8│9│1│2│3│          │1│0│-1│             │?│?│?│?│
-├─┼─┼─┼─┼─┼─┤          ├─┼─┼─┤             ├─┼─┼─┼─┤
-│4│5│6│7│8│9│          │1│0│-1│             │?│?│?│?│
-├─┼─┼─┼─┼─┼─┤          └─┴─┴─┘             ├─┼─┼─┼─┤
-│1│2│3│4│5│6│                                │?│?│?│?│
-├─┼─┼─┼─┼─┼─┤                                └─┴─┴─┴─┘
-│7│8│9│1│2│3│
-├─┼─┼─┼─┼─┼─┤
-│4│5│6│7│8│9│
-└─┴─┴─┴─┴─┴─┘
+Ảnh gốc (6x6):          Filter 3x3:           Kết quả 4x4:
+┌─┬─┬─┬─┬─┬─┐           ┌─┬─┬─┐               ┌─┬─┬─┬─┐
+│1│2│3│4│5│6│           │1│0│-1│              │?│?│?│?│
+├─┼─┼─┼─┼─┼─┤           ├─┼─┼─┤               ├─┼─┼─┼─┤
+│7│8│9│1│2│3│           │1│0│-1│              │?│?│?│?│
+├─┼─┼─┼─┼─┼─┤           ├─┼─┼─┤               ├─┼─┼─┼─┤
+│4│5│6│7│8│9│           │1│0│-1│              │?│?│?│?│
+└─┴─┴─┴─┴─┴─┘           └─┴─┴─┘               └─┴─┴─┴─┘
 ```
 
-**Tại sao CNN tốt hơn MLP cho ảnh?**
+**Các tham số quan trọng:** in_channels, out_channels, kernel_size, stride, padding
 
-| Đặc tính | MLP | CNN |
-|----------|-----|-----|
-| Số tham số | Nhiều (vì fully connected) | Ít hơn (vì shared weights) |
-| Nhận diện pattern 2D | Kém | Tốt |
-| Translation invariance | Không | Có (filter trượt khắp ảnh) |
-| Tốc độ train | Chậm | Nhanh hơn |
-
-#### MaxPool2d (Lấy mẫu xuống)
-
-```python
-nn.MaxPool2d(kernel_size=2, stride=2)
-```
+#### 2. MaxPool2d — Giảm chiều không gian
 
 **Mục đích:** Giảm kích thước ảnh, giữ lại đặc trưng quan trọng nhất.
 
 ```
-Input (4x4):              Output (2x2):
+Input 4x4:                Output 2x2:
 ┌─┬─┬─┬─┐
-│1│3│2│4│                ┌─┬─┐
-├─┼─┼─┼─┤     MaxPool    │3│4│   ← Max mỗi vùng 2x2
-│5│6│7│8│    ────────►   ├─┼─┤
-├─┼─┼─┼─┤                │6│8│
-│2│1│3│5│                └─┴─┘
+│1│3│2│4│                 ┌─┬─┐
+├─┼─┼─┼─┤    MaxPool      │3│4│   ← Lấy max mỗi vùng 2x2
+│5│6│7│8│   ─────────►    ├─┼─┤
+├─┼─┼─┼─┤                 │6│8│
+│2│1│3│5│                 └─┴─┘
 └─┴─┴─┴─┘
 ```
 
-**Dropout (chống overfit):**
+#### 3. Dropout — Chống overfit
 
-```python
-nn.Dropout(p=0.5)  # Tắt ngẫu nhiên 50% nơ-ron khi train
-```
+**Cơ chế:** Tắt ngẫu nhiên một tỷ lệ nơ-ron trong quá trình training.
 
 **Tại sao cần Dropout?**
 - Khi train, model có thể "học thuộc" dữ liệu → overfit
-- Dropout buộc model phải dùng nhiều đường dẫn khác nhau
-- Kết quả: model tổng quát hóa tốt hơn
+- Dropout buộc model phải dùng nhiều "đường dẫn" khác nhau
+- Kết quả: model tổng quát hóa tốt hơn trên dữ liệu mới
 
-**Code SimpleCNN đầy đủ:**
+**Ví dụ:** Dropout(0.5) → mỗi nơ-ron có 50% cơ hội bị "tắt" trong mỗi batch.
 
-```python
-class SimpleCNN(nn.Module):
-    def __init__(self, dropout=0.5):
-        super().__init__()
-        # Block 1: Ảnh xám → 32 features
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.bn1   = nn.BatchNorm2d(32)
-        self.pool1 = nn.MaxPool2d(2, 2)  # 28x28 → 14x14
-        
-        # Block 2: 32 → 64 features
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.bn2   = nn.BatchNorm2d(64)
-        self.pool2 = nn.MaxPool2d(2, 2)  # 14x14 → 7x7
-        
-        # Classifier
-        self.flatten = nn.Flatten()
-        self.fc1     = nn.Linear(64 * 7 * 7, 128)
-        self.dropout = nn.Dropout(dropout)
-        self.fc2     = nn.Linear(128, 10)
-    
-    def forward(self, x):
-        x = self.pool1(torch.relu(self.bn1(self.conv1(x))))
-        x = self.pool2(torch.relu(self.bn2(self.conv2(x))))
-        x = self.flatten(x)
-        x = self.dropout(torch.relu(self.fc1(x)))
-        x = self.fc2(x)
-        return x
+#### 4. Batch Normalization — Ổn định training
+
+**Cơ chế:** Chuẩn hóa output của mỗi layer theo batch.
+
+**Lợi ích:**
+- Cho phép dùng learning rate cao hơn
+- Ít phụ thuộc vào initialization
+- Có tác dụng regularization nhẹ
+
+#### 5. ReLU Activation — Phi tuyến
+
+**Công thức:** f(x) = max(0, x)
+
+**Tại sao dùng ReLU thay vì Sigmoid?**
+- Sigmoid gây vanishing gradient (gradient quá nhỏ ở vùng bão hòa)
+- ReLU có gradient = 1 khi x > 0 → gradient không bị triệt tiêu
+- Tính toán đơn giản, nhanh hơn
+
+**Kiến trúc SimpleCNN (model chiến thắng):**
+
+```
+Input ảnh [1, 28, 28]
+   ↓
+Conv2d(1→32) + BatchNorm + ReLU + MaxPool     → [32, 14, 14]
+   ↓
+Conv2d(32→64) + BatchNorm + ReLU + MaxPool    → [64, 7, 7]
+   ↓
+Flatten                                        → [3136]
+   ↓
+Linear(3136→128) + ReLU + Dropout              → [128]
+   ↓
+Linear(128→10)                                 → [10] (logits cho 10 lớp)
 ```
 
-**Giải thích BatchNorm:** Chuẩn hóa output mỗi batch → ổn định quá trình train, cho phép dùng learning rate cao hơn.
+**So sánh MLP vs CNN:**
+
+| Đặc tính | MLP | CNN |
+|----------|-----|-----|
+| Số tham số | Rất nhiều (vì fully connected) | Ít hơn (vì shared weights) |
+| Nhận diện pattern 2D | Kém | Tốt |
+| Translation invariance | Không | Có (filter trượt khắp ảnh) |
+| Tốc độ train | Chậm | Nhanh hơn |
+| Accuracy trên ảnh | Thấp hơn | Cao hơn 5-7% |
 
 ---
 
 ### 3.3 Bước 3 — Tinh chỉnh siêu tham số (Hyperparameter Tuning)
 
-**Siêu tham số là gì?** Các tham số ta phải chọn TRƯỚC khi train (model không tự học).
+**Siêu tham số là gì?** Các tham số phải chọn TRƯỚC khi train (model không tự học được).
 
 **Các siêu tham số chính:**
 
-| Siêu tham số | Ảnh hưởng | Thường thử |
-|--------------|-----------|-----------|
+| Siêu tham số | Ảnh hưởng | Các giá trị thường thử |
+|--------------|-----------|------------------------|
 | Learning rate | Tốc độ học | 0.1, 0.01, 0.001, 0.0001 |
 | Batch size | Số mẫu/1 lần update | 32, 64, 128, 256 |
 | Optimizer | Thuật toán tối ưu | SGD, Adam, AdamW |
 | Epochs | Số lần duyệt qua data | 5, 10, 20, 50 |
 | Dropout | Tỷ lệ tắt nơ-ron | 0.3, 0.5, 0.7 |
 
-**Phương pháp 1: Grid Search (Tìm kiếm lưới)**
+**Các phương pháp tìm kiếm áp dụng:**
 
-```python
-# Thử tất cả tổ hợp
-learning_rates = [0.001, 0.0001]
-optimizers     = ['adam', 'sgd']
-batch_sizes    = [64, 128]
+#### 1. Grid Search (Tìm kiếm lưới)
 
-for lr in learning_rates:
-    for opt in optimizers:
-        for bs in batch_sizes:
-            # Train và đánh giá
-            score = train_and_evaluate(lr, opt, bs)
-            print(f"lr={lr}, opt={opt}, bs={bs} → {score}")
-```
+**Cách hoạt động:** Thử tất cả tổ hợp có thể trong "lưới" giá trị.
 
-**Ưu điểm:** Đảm bảo tìm được tổ hợp tốt nhất trong lưới.
-**Nhược điểm:** Chậm nếu không gian tìm kiếm lớn (8 trials trong dự án này).
+| Ưu điểm | Nhược điểm |
+|---------|-----------|
+| Đảm bảo tìm được tổ hợp tốt nhất trong lưới | Chậm nếu không gian tìm kiếm lớn |
+| Dễ implement | Tốn tài nguyên tính toán |
 
-**Phương pháp 2: Random Search**
+#### 2. Random Search
 
-```python
-# Chọn ngẫu nhiên tổ hợp
-for trial in range(8):
-    lr = random.choice([0.001, 0.0001, 0.01])
-    opt = random.choice(['adam', 'sgd'])
-    bs = random.choice([64, 128])
-    
-    score = train_and_evaluate(lr, opt, bs)
-```
+**Cách hoạt động:** Chọn ngẫu nhiên tổ hợp giá trị.
 
-**Ưu điểm:** Nhanh hơn, vẫn có cơ hội tìm được cấu hình tốt.
-**Nhược điểm:** Không đảm bảo tìm được tối ưu.
+| Ưu điểm | Nhược điểm |
+|---------|-----------|
+| Nhanh hơn Grid Search | Không đảm bảo tìm được tối ưu |
+| Hiệu quả khi không gian tìm kiếm lớn | Cần nhiều trials để tìm được tốt |
 
-**Kết quả tìm được:**
+**Trong dự án:** Thực hiện 8 trials × 3 epochs mỗi trial.
 
-| Cấu hình | Validation Accuracy |
-|----------|---------------------|
-| simple_cnn + adam + lr=0.001 + bs=128 + dropout=0.5 | **90.53%** ✅ |
-| simple_cnn + sgd + lr=0.001 | 87.21% |
-| resnet_mini + adam + lr=0.0001 | 89.15% |
-| ... | ... |
+**Cấu hình tốt nhất tìm được:**
 
-**Tại sao Adam tốt hơn SGD?**
+| Siêu tham số | Giá trị |
+|---------------|---------|
+| Model | simple_cnn |
+| Optimizer | adam |
+| Learning rate | 0.001 |
+| Batch size | 128 |
+| Dropout | 0.5 |
+| Validation accuracy | 90.53% |
+
+**Tại sao Adam tốt hơn SGD cho bài toán này?**
 - Adam tự điều chỉnh learning rate cho từng tham số
 - SGD cần manual tuning nhiều hơn
-- Với dataset nhỏ như FashionMNIST, Adam hội tụ nhanh hơn
+- Với dataset cỡ trung bình như FashionMNIST, Adam hội tụ nhanh hơn
 
-**Tại sao lr=0.001?**
-- Quá lớn (0.1): loss dao động không hội tụ
-- Quá nhỏ (0.0001): học quá chậm
-- 0.001 là "sweet spot" cho Adam với bài toán này
+**Tại sao lr=0.001 là "sweet spot"?**
+
+| Learning rate | Hiệu quả |
+|---------------|----------|
+| Quá lớn (0.1) | Loss dao động không hội tụ, model không học được |
+| Quá nhỏ (0.0001) | Học quá chậm, tốn thời gian |
+| **0.001** | **Cân bằng giữa tốc độ và ổn định** |
 
 ---
 
@@ -511,9 +396,9 @@ for trial in range(8):
 
 ### 4.1 Bước 1 — Vòng lặp huấn luyện (Training Loop)
 
-**Training loop là gì?** Quy trình lặp đi lặp lại để model "học" từ dữ liệu.
+**Training loop là gì?** Quy trình lặp đi lặp lại để model "học" từ dữ liệu qua nhiều epoch.
 
-**5 bước cốt lõi:**
+**5 bước cốt lõi trong mỗi batch:**
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -525,64 +410,62 @@ for trial in range(8):
 └─────────────────────────────────────────────┘
 ```
 
-**Code chi tiết:**
+**Giải thích chi tiết từng bước:**
 
-```python
-def train_one_epoch(model, loader, optimizer, criterion, device):
-    model.train()  # Chuyển sang chế độ train
-    total_loss = 0
-    correct = 0
-    
-    for batch_idx, (data, target) in enumerate(loader):
-        data, target = data.to(device), target.to(device)
-        
-        # Bước 1: Forward pass
-        optimizer.zero_grad()    # Xóa gradient cũ
-        output = model(data)      # Dự đoán
-        
-        # Bước 2: Tính loss
-        loss = criterion(output, target)
-        
-        # Bước 3: Backward pass
-        loss.backward()           # Tính gradient
-        
-        # Bước 4: Cập nhật trọng số
-        optimizer.step()          # w = w - lr * gradient
-        
-        # Thống kê
-        total_loss += loss.item()
-        pred = output.argmax(dim=1)
-        correct += pred.eq(target).sum().item()
-    
-    return total_loss / len(loader), correct / len(loader.dataset)
-```
+| Bước | Ý nghĩa | Ví dụ cụ thể |
+|------|----------|---------------|
+| **Forward** | Tính output từ input | Ảnh quần → dự đoán "Trouser" với 80% |
+| **Loss** | Đo sai số giữa dự đoán và thực tế | Dự đoán 80% mà thực tế là "Trouser" → loss = 0.22 |
+| **Backward** | Tính đạo hàm loss theo từng trọng số | Trọng số nào cần tăng, trọng số nào cần giảm? |
+| **Step** | Cập nhật trọng số theo gradient | w_new = w_old - 0.001 × gradient |
+| **Zero grad** | Xóa gradient cũ | Nếu không, gradient sẽ cộng dồn qua các batch |
 
-**Giải thích chi tiết:**
+**Các kỹ thuật áp dụng:**
 
-| Bước | Ý nghĩa | Ví dụ |
-|------|----------|-------|
-| `forward` | Tính output từ input | Ảnh quần → dự đoán "Trouser" với 80% |
-| `loss` | Đo sai số | Dự đoán 80% mà thực tế là "Trouser" → loss = 0.22 |
-| `backward` | Tính "đạo hàm" của loss theo từng trọng số | Trọng số nào cần tăng/giảm? |
-| `step` | Cập nhật trọng số theo gradient | w_new = w_old - 0.001 * gradient |
-| `zero_grad` | Xóa gradient cũ | Nếu không, gradient sẽ cộng dồn qua các batch |
+#### 1. CrossEntropyLoss
 
-**Hàm Loss — CrossEntropyLoss:**
-
-```python
-criterion = nn.CrossEntropyLoss()
-```
-
-**CrossEntropy hoạt động thế nào?**
-- Input: logits (điểm số thô cho 10 lớp), ví dụ: [2.1, -0.5, 1.8, 0.2, 0.1, -1.2, 1.5, 0.3, -0.8, 0.7]
-- Bước 1: Softmax → xác suất [0.42, 0.03, 0.31, 0.06, 0.06, 0.02, 0.23, 0.07, 0.02, 0.10]
-- Bước 2: Loss = -log(xác suất của lớp đúng)
-- Nếu đúng là lớp 0: Loss = -log(0.42) = 0.87
+**Cơ chế:**
+- Input: logits (điểm số thô cho 10 lớp), ví dụ: [2.1, -0.5, 1.8, 0.2, ...]
+- Bước 1: **Softmax** → chuyển thành xác suất [0.42, 0.03, 0.31, ...]
+- Bước 2: **Loss = -log(xác suất của lớp đúng)**
+- Nếu lớp đúng có xác suất 0.42 → Loss = -log(0.42) = 0.87
 
 **Tại sao dùng CrossEntropy?**
-- Kết hợp Softmax + Negative Log Likelihood
+- Kết hợp Softmax + Negative Log Likelihood trong 1 hàm
 - Số ổn định (numerical stability)
 - Phù hợp cho bài toán phân loại đa lớp
+
+#### 2. Adam Optimizer
+
+**Cơ chế:**
+- Kết hợp Momentum (nhớ hướng đi trước đó) + RMSProp (điều chỉnh learning rate theo gradient)
+- Mỗi tham số có learning rate riêng
+- Tự điều chỉnh trong quá trình training
+
+**Công thức đơn giản hóa:**
+```
+m_t = β1 × m_{t-1} + (1-β1) × gradient       (momentum)
+v_t = β2 × v_{t-1} + (1-β2) × gradient²      (RMS)
+w_new = w_old - lr × m_t / (√v_t + ε)
+```
+
+#### 3. Forward/Backward Pass
+
+**Forward pass:** Lan truyền thuận — tính output từ input qua các layer.
+
+**Backward pass:** Lan truyền ngược — dùng chain rule tính gradient từ loss về các trọng số.
+
+**Chain Rule (Quy tắc chuỗi):**
+- Loss phụ thuộc vào output
+- Output phụ thuộc vào trọng số layer cuối
+- Trọng số layer cuối phụ thuộc vào output layer trước
+- → Tính gradient ngược từ cuối về đầu
+
+#### 4. Gradient Descent
+
+**Ý tưởng:** Trọng số mới = Trọng số cũ - learning_rate × gradient
+
+**Hình dung:** Đứng trên núi (loss cao) → nhìn xuống chân núi (loss thấp) → bước theo hướng dốc nhất.
 
 ---
 
@@ -590,56 +473,28 @@ criterion = nn.CrossEntropyLoss()
 
 **Validation là gì?** Sau mỗi epoch, đánh giá model trên tập validation (model không học từ tập này).
 
-**Code:**
+**Các kỹ thuật áp dụng:**
 
-```python
-def validate(model, loader, criterion, device):
-    model.eval()  # Chuyển sang chế độ eval (tắt dropout)
-    val_loss = 0
-    correct = 0
-    
-    with torch.no_grad():  # Không tính gradient → tiết kiệm bộ nhớ
-        for data, target in loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            val_loss += criterion(output, target).item()
-            pred = output.argmax(dim=1)
-            correct += pred.eq(target).sum().item()
-    
-    return val_loss / len(loader), correct / len(loader.dataset)
-```
+#### 1. model.eval() — Chế độ đánh giá
 
-**Tại sao cần `model.eval()` và `torch.no_grad()`?**
-- `eval()`: Tắt dropout và batchnorm update → kết quả ổn định
-- `no_grad()`: Không tính gradient → tiết kiệm ~50% bộ nhớ và nhanh hơn
+**Cơ chế:** Chuyển model sang chế độ eval, tắt các layer "chỉ dùng khi train":
+- **Dropout**: Bật lại tất cả nơ-ron
+- **BatchNorm**: Dùng statistics tích lũy thay vì batch hiện tại
 
-**Early Stopping — kỹ thuật chống overfit:**
+#### 2. torch.no_grad() — Tắt tính gradient
 
-```python
-class EarlyStopping:
-    def __init__(self, patience=5, min_delta=0.0001):
-        self.patience = patience
-        self.min_delta = min_delta
-        self.counter = 0
-        self.best_loss = float('inf')
-    
-    def __call__(self, val_loss):
-        if val_loss < self.best_loss - self.min_delta:
-            # Có cải thiện → reset counter
-            self.best_loss = val_loss
-            self.counter = 0
-            return False  # Chưa dừng
-        else:
-            # Không cải thiện → tăng counter
-            self.counter += 1
-            if self.counter >= self.patience:
-                return True  # Dừng train
-            return False
-```
+**Mục đích:**
+- Không cần gradient khi đánh giá
+- Tiết kiệm ~50% bộ nhớ
+- Tăng tốc độ đánh giá
 
-**Logic:**
-- Nếu val_loss không giảm trong 5 epoch liên tiếp → dừng train
-- Lý do: validation không cải thiện nghĩa là model bắt đầu overfit
+#### 3. Early Stopping — Dừng train sớm
+
+**Ý tưởng:** Nếu val_loss không cải thiện trong N epoch liên tiếp → dừng train.
+
+**Tham số:**
+- `patience=5`: Chờ 5 epoch trước khi dừng
+- `min_delta=0.0001`: Cải thiện tối thiểu bao nhiêu mới tính là "tốt hơn"
 
 **Hình dung:**
 
@@ -650,45 +505,40 @@ val_loss
   │   ╲      ╱  ╲
   │    ╲    ╱    ╲
   │     ╲  ╱      ╲
-  │      ╲╱        ╲___ ← Nếu không có early stopping, sẽ tiếp tục train
+  │      ╲╱        ╲___ ← Nếu không có early stopping, train tiếp → overfit
   └────────────────────── epoch
        1  5  10  15  20
 ```
+
+**Tại sao cần Early Stopping?**
+- Validation không cải thiện → model bắt đầu overfit
+- Tránh lãng phí thời gian training
+- Tự động chọn được điểm "sweet spot"
 
 ---
 
 ### 4.3 Bước 3 — Checkpoint (Lưu mô hình)
 
-**Mục đích:** Lưu lại trọng số model để dùng sau hoặc khôi phục nếu crash.
+**Mục đích:** Lưu lại trọng số model để dùng sau hoặc khôi phục nếu bị crash giữa chừng.
 
-**Code:**
-
-```python
-def save_checkpoint(model, optimizer, epoch, val_loss, path):
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'val_loss': val_loss,
-    }, path)
-
-def load_checkpoint(path, model, optimizer):
-    checkpoint = torch.load(path)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    return checkpoint['epoch'], checkpoint['val_loss']
-```
-
-**Best vs Last checkpoint:**
+**Các loại checkpoint:**
 
 | Loại | Khi nào lưu | Dùng khi nào |
 |------|-------------|--------------|
-| `best_model.pt` | val_loss thấp nhất | Đánh giá cuối, deploy |
-| `last_model.pt` | Cuối mỗi epoch | Resume training |
+| **Best model** | val_loss thấp nhất | Đánh giá cuối, deploy production |
+| **Last model** | Cuối mỗi epoch | Resume training nếu bị gián đoạn |
+
+**Các kỹ thuật áp dụng:**
+
+| Kỹ thuật | Mục đích |
+|----------|----------|
+| **State dict** | Lưu trọng số model (chỉ parameters, không lưu architecture) |
+| **Serialization** | Chuyển object thành file có thể tải lại |
+| **Versioning** | Theo dõi model nào tốt nhất qua các lần train |
 
 **Tại sao lưu cả hai?**
-- Best: model tốt nhất (cho kết quả test cao nhất)
-- Last: để resume training nếu bị gián đoạn
+- **Best**: Model cho kết quả test cao nhất
+- **Last**: Để resume training nếu bị crash
 
 ---
 
@@ -697,98 +547,77 @@ def load_checkpoint(path, model, optimizer):
 **Tại sao cần vẽ biểu đồ?**
 - Số liệu thô khó nhìn → biểu đồ giúp thấy xu hướng
 - Phát hiện overfit/underfit nhanh chóng
+- Truyền đạt kết quả trực quan
 
-**Code:**
+**Các kỹ thuật áp dụng:**
 
-```python
-import matplotlib.pyplot as plt
-
-def plot_history(history):
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-    
-    # Loss
-    ax1.plot(history['train_loss'], label='Train')
-    ax1.plot(history['val_loss'], label='Validation')
-    ax1.set_title('Loss theo epoch')
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Loss')
-    ax1.legend()
-    
-    # Accuracy
-    ax2.plot(history['train_acc'], label='Train')
-    ax2.plot(history['val_acc'], label='Validation')
-    ax2.set_title('Accuracy theo epoch')
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Accuracy (%)')
-    ax2.legend()
-    
-    plt.tight_layout()
-    plt.savefig('results/runs/training_curves.png')
-    plt.show()
-```
+| Kỹ thuật | Mục đích |
+|----------|----------|
+| **Line plot** | Vẽ loss/accuracy theo epoch |
+| **Train vs Validation** | So sánh 2 đường cong để phát hiện vấn đề |
+| **Subplot** | Hiển thị nhiều biểu đồ cùng lúc |
 
 **Cách đọc biểu đồ:**
 
 ```
-✅ Tốt:               ❌ Overfit:           ❌ Underfit:
-  acc                     acc                    acc
-  │   val╱──              │  val───╲            │  val
-  │  ╱                    │ ╱       ╲            │ ╱
-  │ ╱ train               │╱ train   ╲          │╱ train
-  │╱                      │           ╲___      │╱
-  └────── epoch           └──────────── epoch   └────── epoch
+✅ Tốt (Generalization):     ❌ Overfit:                ❌ Underfit:
+  acc                           acc                         acc
+  │   val╱──                    │  val───╲                  │  val
+  │  ╱                          │ ╱       ╲                  │ ╱
+  │ ╱ train                     │╱ train   ╲                 │╱ train
+  │╱                            │           ╲___             │╱
+  └────── epoch                 └──────────── epoch          └────── epoch
+  (train ≈ val)                 (val giảm, train tăng)      (cả 2 đều thấp)
 ```
 
 ---
 
 ### 4.5 Bước 5 — Đánh giá trên tập Test
 
-**Các metrics chính:**
+**Mục tiêu:** Đánh giá khách quan model trên dữ liệu chưa từng thấy.
 
-#### Accuracy (Độ chính xác tổng thể)
+**Các metrics đánh giá:**
 
-```python
-accuracy = correct_predictions / total_predictions
-```
+#### 1. Accuracy (Độ chính xác tổng thể)
 
-**Ví dụ:** 9,210/10,000 = **92.10%**
+**Công thức:** `accuracy = correct_predictions / total_predictions`
 
-#### Precision & Recall (Per Class)
+**Kết quả:** 9,210/10,000 = **92.10%**
 
-```python
-# True Positive: dự đoán đúng là "Áo thun" và thực tế là "Áo thun"
-# False Positive: dự đoán là "Áo thun" nhưng thực tế không phải
-# False Negative: thực tế là "Áo thun" nhưng dự đoán sai
+#### 2. Precision (Độ chính xác dương)
 
-precision = TP / (TP + FP)  # Trong các dự đoán "Áo thun", bao nhiêu % đúng?
-recall    = TP / (TP + FN)  # Trong các "Áo thun" thực tế, tìm được bao nhiêu %?
-```
+**Công thức:** `precision = TP / (TP + FP)`
 
-**Ví dụ dễ hiểu:**
-- Precision cao: Model "cẩn thận", chỉ dự đoán khi chắc chắn
-- Recall cao: Model "thoáng", không bỏ sót trường hợp nào
+**Ý nghĩa:** Trong tất cả các dự đoán "lớp X", bao nhiêu % thực sự là lớp X?
 
-#### F1-Score (Trung bình điều hòa)
+**Ví dụ:** Model dự đoán 100 ảnh là "Áo thun", trong đó 92 đúng → Precision = 92%.
 
-```python
-f1 = 2 * (precision * recall) / (precision + recall)
-```
+#### 3. Recall (Khả năng tìm đúng)
+
+**Công thức:** `recall = TP / (TP + FN)`
+
+**Ý nghĩa:** Trong tất cả các ảnh thực sự là "lớp X", model tìm được bao nhiêu %?
+
+**Ví dụ:** Có 100 ảnh "Áo thun" thật, model tìm đúng 90 → Recall = 90%.
+
+#### 4. F1-Score (Trung bình điều hòa)
+
+**Công thức:** `F1 = 2 × (precision × recall) / (precision + recall)`
 
 **Khi nào F1 quan trọng?** Khi dữ liệu mất cân bằng (precision và recall "trái ngược" nhau).
 
-#### Confusion Matrix (Ma trận nhầm lẫn)
+#### 5. Confusion Matrix (Ma trận nhầm lẫn)
 
 **Ý tưởng:** Bảng 10×10 cho biết lớp nào hay bị nhầm với lớp nào.
 
 ```
-         Predicted
-         T-shirt  Trouser  Pullover  ...  Shirt
+            Predicted
+            T-shirt  Trouser  ...  Shirt
 True
-T-shirt    892      5        10            50
-Trouser     3      945        2             1
-Pullover    8       2       870           60
+T-shirt      892      5       ...   50
+Trouser        3    945       ...    1
 ...
-Shirt      90       1        64          640
+Shirt         90      1       ...  640
 ```
 
 **Cách đọc:**
@@ -797,7 +626,7 @@ Shirt      90       1        64          640
 - Đường chéo: số dự đoán đúng
 - Ngoài đường chéo: số dự đoán sai
 
-**Kết quả confusion matrix của dự án:**
+**Kết quả phân tích confusion matrix:**
 
 | Lớp thực | → Bị nhầm thành | Số lần |
 |-----------|----------------|--------|
@@ -807,35 +636,25 @@ Shirt      90       1        64          640
 | Coat | Pullover | 63 |
 | Coat | Shirt | 55 |
 
-**Insight:** Shirt và T-shirt/top dễ nhầm vì hình dạng giống nhau (đều là áo, cổ tròn, tay ngắn).
+**Insight:** Shirt và T-shirt/top dễ bị nhầm vì hình dạng tương tự (đều là áo, cổ tròn, tay ngắn).
 
 ---
 
 ### 4.6 Bước 6 — Lưu mô hình cuối
 
-**Code:**
+**Nội dung lưu trữ:**
 
-```python
-# Lưu model với metrics
-torch.save({
-    'model_state_dict': model.state_dict(),
-    'model_name': 'simple_cnn',
-    'metrics': {
-        'test_accuracy': 0.9210,
-        'test_precision': 0.9211,
-        'test_recall': 0.9210,
-        'test_f1': 0.9209
-    },
-    'config': {
-        'dropout': 0.5,
-        'batch_size': 128
-    }
-}, 'models/checkpoints/final_model.pt')
-```
+| Thành phần | Mục đích |
+|------------|----------|
+| `model_state_dict` | Trọng số đã học |
+| `model_name` | Tên kiến trúc |
+| `metrics` | Accuracy, Precision, Recall, F1 |
+| `config` | Hyperparameters đã dùng |
 
 **Tại sao lưu kèm metrics?**
 - Tiện cho việc so sánh các model
 - Người khác mở ra biết ngay model này đạt bao nhiêu %
+- Tái tạo được kết quả
 
 ---
 
@@ -860,25 +679,25 @@ torch.save({
 | 11 (best) | 0.180 | **0.215** | 93.21% | 92.88% |
 | 15 (last) | 0.141 | 0.230 | 94.72% | 93.03% |
 
-### 5.3 Những kỹ thuật đã sử dụng (Tóm tắt)
+### 5.3 Tổng hợp các kỹ thuật đã sử dụng
 
-| # | Kỹ thuật | Mục đích | Hiệu quả |
-|---|----------|----------|----------|
-| 1 | **Normalization** | Đưa về cùng scale | Tăng tốc hội tụ |
-| 2 | **Stratified Split** | Giữ tỷ lệ lớp | Đánh giá công bằng |
-| 3 | **CNN thay vì MLP** | Học pattern 2D | +5-7% accuracy |
-| 4 | **Batch Normalization** | Ổn định train | Cho phép lr cao hơn |
-| 5 | **Dropout** | Chống overfit | Giảm 2-3% overfit |
-| 6 | **Adam Optimizer** | Tự điều chỉnh lr | Hội tụ nhanh |
-| 7 | **Early Stopping** | Dừng đúng lúc | Tránh overfit |
-| 8 | **Checkpoint** | Lưu model tốt | An toàn khi crash |
-| 9 | **Grid Search** | Tìm hyper tối ưu | Tăng 2-3% accuracy |
-| 10 | **Data Augmentation** | Tăng data (chưa dùng) | Có thể tăng thêm 1-2% |
+| # | Kỹ thuật | Áp dụng ở đâu | Hiệu quả |
+|---|----------|---------------|----------|
+| 1 | **Normalization** | Giai đoạn 1 - Preprocessing | Tăng tốc hội tụ |
+| 2 | **Stratified Split** | Giai đoạn 1 - Data Split | Đánh giá công bằng |
+| 3 | **CNN thay vì MLP** | Giai đoạn 2 - Model Dev | +5-7% accuracy |
+| 4 | **Batch Normalization** | Trong CNN | Ổn định training |
+| 5 | **Dropout** | Trong CNN | Giảm 2-3% overfit |
+| 6 | **Adam Optimizer** | Giai đoạn 3 - Training | Hội tụ nhanh |
+| 7 | **Early Stopping** | Giai đoạn 3 - Training | Tránh overfit |
+| 8 | **Checkpoint** | Giai đoạn 3 - Training | An toàn khi crash |
+| 9 | **Grid Search** | Giai đoạn 2 - Hyperparam | Tăng 2-3% accuracy |
+| 10 | **CrossEntropyLoss** | Giai đoạn 3 - Training | Phù hợp phân loại đa lớp |
 
-### 5.4 Hướng cải thiện
+### 5.4 Hướng cải thiện trong tương lai
 
-| Cải thiện | Kỳ vọng |
-|-----------|---------|
+| Cải thiện | Kỳ vọng tăng |
+|-----------|--------------|
 | Data Augmentation (xoay, lật, zoom) | +1-2% |
 | ResNet18 thay vì SimpleCNN | +1-3% |
 | Learning rate scheduler | +0.5-1% |
@@ -925,34 +744,16 @@ e:\lab1/
 
 ---
 
-## Hướng dẫn tái tạo
+## Hướng dẫn tái tạo dự án
 
-### Bước 1: Clone repository
-```bash
-git clone https://github.com/Sper-il/Lab1.git
-cd Lab1
-```
-
-### Bước 2: Cài đặt thư viện
-```bash
-pip install -r requirements.txt
-```
-
-### Bước 3: Huấn luyện model
-```bash
-python main.py
-```
-
-### Bước 4: Đánh giá model
-```bash
-$env:PYTHONPATH = "."
-python src/evaluation/run_evalution.py
-```
-
-### Bước 5: Chạy tests
-```bash
-pytest tests/training -v
-```
+| Bước | Lệnh | Mục đích |
+|------|------|----------|
+| 1 | `git clone https://github.com/Sper-il/Lab1.git` | Tải source code |
+| 2 | `cd Lab1` | Vào thư mục dự án |
+| 3 | `pip install -r requirements.txt` | Cài thư viện cần thiết |
+| 4 | `python main.py` | Huấn luyện model |
+| 5 | `python src/evaluation/run_evalution.py` | Đánh giá trên test set |
+| 6 | `pytest tests/training -v` | Chạy unit tests |
 
 ---
 
