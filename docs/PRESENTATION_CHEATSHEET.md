@@ -88,9 +88,11 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 
 ## PHẦN 4 — Mô hình & siêu tham số · 2m30 · `3:15`
 
-> "**Bước 1 — Baseline.** Trước khi làm gì phức tạp, em dựng MLP đơn giản: 784 → 256 → 128 → 10. Để có **mức sàn** so sánh. Không có baseline thì không biết mô hình phức tạp có thật sự tốt hơn không.
+> "Bốn bước, mỗi bước một quyết định có căn cứ từ số liệu.
 >
-> **Bước 2 — So sánh 4 kiến trúc**, đăng ký qua `ModelFactory` nên thêm kiến trúc mới chỉ cần 1 dòng code:
+> **Bước 1 — Baseline.** Trước khi làm gì phức tạp, em dựng MLP đơn giản: **Flatten 784 → Linear(256) → ReLU → Linear(128) → ReLU → Linear(10)**. Để có **mức sàn** so sánh — không có baseline thì không phân biệt được 'phức tạp mà giỏi' với 'chỉ chậm hơn'.
+>
+> **Bước 2 — So sánh 4 kiến trúc**, đăng ký qua `ModelFactory` — một registry, nên thêm kiến trúc mới chỉ cần **1 dòng code**.
 >
 > → mở `results/runs/architecture_selection.md`
 >
@@ -101,15 +103,13 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 > | **SimpleCNN** | **421.642** | **88.83%** | **75** |
 > | ResNetMini | 174.970 | 88.48% | 239 |
 >
-> **Vì sao CNN thắng?** Vấn đề gốc của MLP với ảnh: nó coi **mỗi pixel độc lập**, không thấy cấu trúc 2D, không có tính chất dịch chuyển. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture.
+> **Vì sao CNN thắng?** MLP coi **mỗi pixel độc lập**, không thấy cấu trúc 2D. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture. Còn ResNetMini kém 0.35% nhưng **chậm gấp 3,2×** — ResNet cần tập dữ liệu lớn hơn nhiều (ImageNet 1.2M ảnh) mới phát huy.
 >
-> ResNetMini kém 0.35% nhưng **chậm gấp 3,2×** — không đáng đánh đổi.
->
-> Kiến trúc em chọn: **SimpleCNN** — Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → FC(3136→128) → Dropout → FC(128→10).
+> Em chốt **SimpleCNN**: Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → Linear(3136→128) → Dropout(0.5) → Linear(128→10).
 >
 > **Bước 3 — Tinh chỉnh siêu tham số, hai lần thử nghiệm.**
 >
-> **Lần 1 — Grid search 8 trials × 3 epoch**, quét đủ 2 model × 2 learning rate × 2 optimizer, mất khoảng 19 phút CPU:
+> **Lần 1 — Grid search 8 trials × 3 epoch**, quét đủ 2 model × 2 learning rate × 2 optimizer, khoảng 19 phút CPU. Grid **tất định** và **phủ kín**.
 >
 > | Model | LR | Optim | Val Acc |
 > |-------|-----|-------|---------|
@@ -122,38 +122,31 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 > | simple_cnn | 0.001 | sgd | 80.83% |
 > | simple_cnn | 0.0005 | sgd | 78.13% |
 >
-> Ba kết luận từ bảng:
-> - **Adam thắng SGD ở cùng learning rate, chênh 7–10%** — Adam tự chỉnh learning rate từng tham số, SGD thì không.
-> - **simple_cnn thắng deep_mlp ở mọi tổ hợp** — CNN khai thác cấu trúc 2D.
-> - **SGD lr=0.0005 học rất chậm**, chỉ 78% sau 3 epoch.
+> Ba kết luận: **Adam thắng SGD ở cùng learning rate, chênh 7–10%** — Adam duy trì **một learning rate riêng cho từng tham số** nên tự giảm tốc khi gradient dao động mạnh, còn SGD dễ lạc khỏi minimum trên loss surface gồ ghề của CNN. **`simple_cnn` thắng `deep_mlp` ở *mọi* tổ hợp** — nhắc lại lý do cấu trúc 2D. Và **SGD học chậm**: lr=0.0005 chỉ 78–82% sau 3 epoch.
 >
-> **Lần 2 — Random search 12 trials × 3 epoch**, quét cả 4 kiến trúc với siêu tham số ngẫu nhiên.
+> **Lần 2 — Random search 12 trials × 3 epoch**, quét cả **4 kiến trúc** — em muốn cho ResNet cơ hội cạnh tranh công bằng.
 >
 > → mở `results/runs/hyperopt.md`
 >
-> Trial tốt nhất là **resnet_mini + adam + lr=0.01, đạt 89.15%**.
+> Trial tốt nhất là **resnet_mini + adam + lr=0.01, đạt 89.15%**. Em vẫn **chốt theo grid**, vì grid **phủ đầy đủ** còn random **có thể trượt** ô tốt, và grid **tất định** — quan trọng cho reproducibility. ResNet thua 1.4% không phải do nó tệ, mà vì **3 epoch quá ngắn**.
 >
-> Em **chốt theo grid search**, vì grid quét **đầy đủ** mọi tổ hợp còn random có thể trượt, và grid **tất định** — cùng config cho cùng kết quả. ResNet điểm thấp hơn trong bảng này không phải do nó tệ, mà vì **3 epoch quá ngắn để hội tụ**.
+> **Bước 4 — Chốt cấu hình:** SimpleCNN + Adam + lr=0.001 + batch 128 + dropout 0.5 + 15 epoch + CrossEntropyLoss.
 >
-> **Bước 4 — Chốt cấu hình:** SimpleCNN + Adam + lr=0.001 + batch 128 + dropout 0.5.
->
-> Em chọn mô hình dựa trên **số liệu validation**, không phải cảm tính. Tập test giữ kín tới cuối."
+> Mọi quyết định em chốt dựa trên **số liệu validation**, không phải cảm tính. Tập test giữ kín tới Phần 6."
 
 ---
 
 ## PHẦN 5 — Huấn luyện · 1m45 · `5:45`
 
-> "Em viết một lớp `Trainer`, mỗi epoch gồm 2 vòng:
+> "Giờ em train với cấu hình đã chốt.
 >
-> **Train loop** — 5 bước: `zero_grad` → **forward** (dự đoán) → **loss** (đo sai số) → **backward** (tính gradient) → **step** (cập nhật trọng số).
+> **Cấu trúc code.** Em viết lớp `Trainer`, mỗi epoch gồm 2 vòng. **Vòng train** là 5 bước chuẩn PyTorch: `zero_grad` → **forward** (ra logits B×10) → **loss** → **backward** → **step** (cập nhật trọng số theo Adam).
 >
-> **Validate loop** — dùng `model.eval()` và `torch.no_grad()`: tắt dropout, dùng statistics đã tích lũy của BatchNorm, không tính gradient — tiết kiệm khoảng **50% bộ nhớ**.
+> **Vòng validate** khác 3 điểm: `model.eval()` tắt dropout và dùng **statistics đã tích lũy** của BatchNorm thay vì batch hiện tại — quên bước này thì validation sai hoàn toàn; `torch.no_grad()` không tính gradient nên **tiết kiệm khoảng 50% bộ nhớ**; và model **không học** trên validation.
 >
-> Loss là **CrossEntropyLoss** — gộp cả Softmax và Negative Log Likelihood vào một hàm, nhận logits thay vì xác suất để ổn định số học. Optimizer là **Adam**.
+> Loss là **CrossEntropyLoss** — gộp cả Softmax và Negative Log Likelihood vào một hàm, nhận thẳng **logits** thay vì xác suất để ổn định số học.
 >
-> **Hai callback:**
-> - **EarlyStopping** theo `val_loss`, patience = 5. Không cải thiện trong 5 epoch liên tiếp là dừng, vì model đã overfit.
-> - **Checkpoint** lưu cả **best model** (theo val_loss thấp nhất, dùng để đánh giá) và **last model** (để resume nếu crash).
+> **Hai callback:** *EarlyStopping* theo `val_loss`, patience = 5, min_delta = 0.0001 — không giảm thêm 0.0001 trong 5 epoch liên tiếp thì dừng, vì lúc đó model đã **overfit**. Và *Checkpoint* lưu `best_model.pt` (theo val_loss thấp nhất) + `last_model.pt` (để resume nếu crash), kèm weights, optimizer state và metrics.
 >
 > Em chạy **15 epoch**:
 >
@@ -166,15 +159,16 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 >
 > → mở `results/runs/loss_curve.png`
 >
-> Cô thấy ngay: **train loss giảm đều, nhưng val loss đạt đỉnh ở epoch 11 — 0.215 — rồi tăng lại**.
+> **Train loss giảm đều không ngừng**, còn **val loss đạt đỉnh ở epoch 11 — 0.215 — rồi tăng lại**. Train chạm đáy 0.141 ở epoch 15 trong khi val loss tăng — hình dạng kinh điển của **overfitting**.
 >
 > → mở `results/runs/accuracy_curve.png`
 >
-> Và **train accuracy tăng đều lên 94.72%, còn validation đi ngang quanh 92.8%**.
+> **Train accuracy tăng đều lên 94.72%, còn validation đi ngang quanh 92.8%** từ epoch 13. Khoảng cách ~2% đó là model học thuộc.
 >
-> Đây là dấu hiệu **overfit**, và nó chứng minh **EarlyStopping hoạt động đúng** — dừng đúng lúc tốt nhất thay vì để model học thuộc.
->
-> Em lưu theo `val_loss` chứ không phải `val_acc`, vì loss chuẩn hơn: loss phạt cả trường hợp model mơ hồ — đoán sai nhưng vẫn trả xác suất cao."
+> Ba điều em muốn nói rõ:
+> 1. **EarlyStopping hoạt động đúng.** Sau epoch 11 chỉ có 4 epoch không cải thiện nên nó **chưa kích hoạt** — dừng sớm thì em mất luôn 4 epoch cải thiện nhỏ. Bài học: **patience không phải càng nhỏ càng tốt**.
+> 2. **Em lưu theo `val_loss` chứ không phải `val_acc`.** Nếu theo val_acc thì đỉnh là epoch 13 (92.88%), cao hơn epoch 11 (92.85%) — chênh chỉ 0.03%, trong khi val_loss cho thấy rõ xu hướng. Chọn loss chuẩn hơn vì **loss phạt cả trường hợp model "mơ hồ"** — đoán sai nhưng vẫn trả xác suất cao.
+> 3. **Overfit ở mức nhẹ** — val accuracy chỉ giảm 0.05% từ đỉnh xuống cuối (92.85% → 92.80%), model vẫn dùng được.
 
 ---
 
@@ -287,7 +281,3 @@ python main.py                          # Train 15 epoch + sinh đồ thị
 python src/evaluation/run_evalution.py   # Đánh giá test + confusion matrix
 pytest tests/training -v                # 23 unit test
 ```
-
----
-
-*Tạo: 2026-10-21 · Bản rút gọn: `PRESENTATION_SCRIPT.md`*
