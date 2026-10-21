@@ -17,7 +17,8 @@
 | **2** | `results/runs/per_class_samples.png` | Phần 2 (1:00) | 10 lớp, mỗi lớp 1 ảnh mẫu |
 | **3** | `results/runs/class_distribution.png` | Phần 3 (1:45) | 10 cột đều nhau = cân bằng |
 | **4** | `results/runs/pixel_histogram.png` | Phần 3 (2:00) | Histogram phân bố cường độ pixel |
-| **5** | `results/runs/hyperopt.md` | Phần 4 (4:30) | Bảng 8 trials grid search — **mở bằng Notepad/VSCode** |
+| **5** | `results/runs/hyperopt.md` | Phần 4 (4:30) | ⚠️ **random search 12 trials** — không phải grid 8 trials |
+| **5b** | `results/runs/architecture_selection.md` | Phần 4 | So sánh 4 kiến trúc + s/epoch |
 | **6** | `results/runs/loss_curve.png` | Phần 5 (6:30) | Vùng epoch 11–13: val loss bắt đầu tăng |
 | **7** | `results/runs/accuracy_curve.png` | Phần 5 (6:45) | Train acc vẫn tăng, val acc đi ngang |
 | **8** | `results/runs/confusion_matrix.png` | Phần 6 (8:00) | Hàng Shirt & cột T-shirt sáng nhất |
@@ -33,12 +34,16 @@ Tab 1: PRESENTATION_SCRIPT.md     ← đang đọc
 Tab 2: dataset_info.md            ← Phần 2 (bảng 10 lớp + stats)
 Tab 3: per_class_samples.png      ← Phần 2
 Tab 4: class_distribution.png     ← Phần 3
-Tab 5: hyperopt.md                ← Phần 4
-Tab 6: loss_curve.png             ← Phần 5
-Tab 7: accuracy_curve.png         ← Phần 5
-Tab 8: confusion_matrix.png       ← Phần 6
-Tab 9: predictions.png            ← Phần 6
+Tab 5: pixel_histogram.png        ← Phần 3
+Tab 6: hyperopt.md                ← Phần 4 (⚠️ random 12 trials)
+Tab 7: loss_curve.png             ← Phần 5
+Tab 8: accuracy_curve.png         ← Phần 5
+Tab 9: confusion_matrix.png       ← Phần 6
+Tab 10: predictions.png           ← Phần 6
 ```
+
+> ⚠️ **Trước khi lên lớp:** đọc `docs/PRESENTATION_FACTS.md` — file này ghi lại mọi con số
+> đã kiểm chứng và **4 chỗ sai đã sửa** trong kịch bản.
 
 > 💡 **Mẹo thao tác:** Trong VSCode, dùng `Ctrl+P` → gõ tên file → Enter để mở nhanh không cần rời bàn phím. Với file `.png`, bấm chuột phải → **Open Preview** để phóng to fullscreen.
 
@@ -82,7 +87,7 @@ Tab 9: predictions.png            ← Phần 6
 
 > Em đặt mục tiêu này trước khi bắt đầu code, vì một mục tiêu rõ ràng giúp em biết khi nào nên dừng tìm kiếm, thay vì cứ mò mãi mãi."
 
-**📎 Mở slide: bảng 10 lớp + dataset stats**
+**📎 Mở slide: bảng 10 lớp + dataset stats** → lấy từ `results/runs/dataset_info.md`
 
 ---
 
@@ -136,19 +141,38 @@ Tab 9: predictions.png            ← Phần 6
 
 > Kiến trúc em chọn là **SimpleCNN**: Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → FC(3136→128) → Dropout → FC(128→10).
 
-**Bước 3 — Tinh chỉnh siêu tham số.** Em chạy **Grid Search 8 trials × 3 epoch** trên CPU, mất khoảng 19 phút. Kết quả:
+**Bước 3 — Tinh chỉnh siêu tham số.** Em chạy **hai lần thử nghiệm**:
 
-> - **Adam luôn thắng SGD** ở cùng learning rate — chênh lệch tới **7–10%**. Điều này đúng với lý thuyết: Adam tự điều chỉnh learning rate cho từng tham số, còn SGD thì không.
-> - **Tổ hợp thắng: SimpleCNN + Adam + lr=0.001**, đạt **90.53% validation accuracy**.
-> - DeepMLP chỉ đạt ~87% — không tệ cho mạng fully-connected, nhưng không bằng CNN.
+**Lần 1 — Grid search 8 trials × 3 epoch** (quét *đầy đủ* 2 model × 2 learning rate × 2 optimizer = 8 tổ hợp, ~19 phút CPU):
+
+| Model | LR | Optim | Val Acc |
+|-------|-----|-------|---------|
+| **simple_cnn** | **0.001** | **adam** | **90.53%** |
+| simple_cnn | 0.0005 | adam | 88.97% |
+| deep_mlp | 0.001 | adam | 87.13% |
+| deep_mlp | 0.0005 | adam | 87.07% |
+| deep_mlp | 0.001 | sgd | 83.98% |
+| deep_mlp | 0.0005 | sgd | 82.25% |
+| simple_cnn | 0.001 | sgd | 80.83% |
+| simple_cnn | 0.0005 | sgd | 78.13% |
+
+> **Ba nhận xét từ bảng này:**
+> - **Adam luôn thắng SGD** ở cùng learning rate — chênh lệch tới **7–10%**. Đúng với lý thuyết: Adam tự điều chỉnh learning rate cho từng tham số, còn SGD thì không.
+> - **`simple_cnn` thắng `deep_mlp` ở *mọi* tổ hợp** — CNN khai thác cấu trúc không gian 2D của ảnh, MLP thì không.
+> - **SGD ở lr=0.0005** học rất chậm — chỉ 78% sau 3 epoch.
+
+**Lần 2 — Random search 12 trials × 3 epoch** (quét cả **4 kiến trúc** với siêu tham số ngẫu nhiên, ~13 phút). Trial tốt nhất ở đây là `resnet_mini` + adam + lr=0.01 đạt **89.15%**.
+
+> Em chủ động **chốt theo grid search**, vì: (1) grid quét **đầy đủ** mọi tổ hợp, random có thể trượt; (2) grid **tất định** — cùng config cho cùng kết quả. Điểm random thấp hơn không phải do `resnet_mini` tệ hơn, mà vì **3 epoch quá ngắn để hội tụ** — benchmark riêng cho thấy `resnet_mini` chỉ kém `simple_cnn` **0.35%** nhưng chậm **3.2×**.
 
 **Bước 4 — Chọn mô hình.** Em chốt **SimpleCNN + Adam + lr=0.001 + batch 128 + dropout 0.5** và chuyển sang giai đoạn 3.
 
 > Điểm em muốn lưu ý: em **không** chọn mô hình dựa trên cảm tính, mà dựa trên **số liệu validation**. Tập test được giữ kín hoàn toàn cho tới bước đánh giá cuối."
 
-**📎 Mở tab 4: `results/runs/hyperopt.md`** — bảng 8 trials grid search (mở bằng VSCode/Notepad để copy bảng vào slide)
+**📎 Mở tab 5: `results/runs/hyperopt.md`** — ⚠️ đây là bảng **random search 12 trials**. Muốn trình bày bảng **grid 8 trials** thì lấy từ `docs/reports/nguoi1_models_report.md` §2.2
+**📎 Mở tab 5b: `results/runs/architecture_selection.md`** — so sánh 4 kiến trúc: `simple_cnn` 88.83% / 75 s-per-epoch vs `resnet_mini` 88.48% / 239 s-per-epoch
 
-**💡 Câu hỏi dự kiến:** *"Vì sao không dùng mô hình lớn hơn để đạt điểm cao hơn?"* → Vì mục tiêu là 90% và SimpleCNN đã đạt 92.1%, vượt mục tiêu. Ngoài ra ResNetMini đã được cài và thử nghiệm nhưng hiệu quả không hơn trên dataset nhỏ này, và CNN đơn giản chạy nhanh hơn ~2×.
+**💡 Câu hỏi dự kiến:** *"Vì sao không dùng mô hình lớn hơn để đạt điểm cao hơn?"* → Em **đã thử** ResNetMini. Nó chỉ kém 0.35% (88.48% vs 88.83%) nhưng chậm gấp 3.2× (239 vs 75 s/epoch). Với mục tiêu 90% và SimpleCNN đã vượt (92.1%), đánh đổi đó không đáng.
 
 ---
 
@@ -231,7 +255,7 @@ Tab 9: predictions.png            ← Phần 6
 
 > **Kết quả:** Test accuracy **92.10%**, precision/recall/F1 đều trên 92% — **vượt mục tiêu 90%** đã đặt ra trước khi bắt đầu.
 
-> **Về mặt kỹ thuật**, em đã triển khai đầy đủ chuỗi pipeline: EDA → làm sạch → chuẩn hóa → chia dữ liệu 3 tập với stratified split → 4 kiến trúc mô hình qua factory pattern → grid search siêu tham số → training loop với early stopping và checkpoint → đánh giá 4 chỉ số → phân tích lỗi bằng confusion matrix. Toàn bộ **27 unit test đều pass**.
+> **Về mặt kỹ thuật**, em đã triển khai đầy đủ chuỗi pipeline: EDA → làm sạch → chuẩn hóa → chia dữ liệu 3 tập với stratified split → 4 kiến trúc mô hình qua factory pattern → grid search + random search siêu tham số → training loop với early stopping và checkpoint → đánh giá 4 chỉ số → phân tích lỗi bằng confusion matrix. Toàn bộ **23 unit test cho phần training đều pass**.
 
 > **Điều em học được lớn nhất** không phải là thuật toán nào cụ thể, mà là **tư duy thực nghiệm**: mọi quyết định về kiến trúc và siêu tham số trong dự án này đều đến từ **số liệu đo được**, không phải từ cảm tính. Chính nhờ đó em biết chính xác model của mình giỏi ở đâu và yếu ở đâu.
 
@@ -253,7 +277,7 @@ Tab 9: predictions.png            ← Phần 6
 | 2 | Bài toán + 10 lớp + dataset stats | Copy bảng từ `results/runs/dataset_info.md` + ảnh `per_class_samples.png` |
 | 3 | EDA: cân bằng lớp + phân bố pixel | `results/runs/class_distribution.png` + `pixel_histogram.png` |
 | 4 | 4 kiến trúc + số tham số | Bảng trong `docs/reports/nguoi1_models_report.md` §1 |
-| 5 | Grid search 8 trials | Copy bảng từ `results/runs/hyperopt.md` |
+| 5 | Grid search 8 trials + random 12 trials | `results/runs/hyperopt.md` (⚠️ random) hoặc copy bảng grid từ `nguoi1_models_report.md` §2.2 |
 | 6 | Đồ thị training (2 ảnh cạnh nhau) | `results/runs/loss_curve.png` + `accuracy_curve.png` |
 | 7 | Confusion matrix + dự đoán | `results/runs/confusion_matrix.png` + `predictions.png` |
 | 8 | Tổng kết + hướng phát triển | — |
@@ -262,16 +286,18 @@ Tab 9: predictions.png            ← Phần 6
 
 ```
 [x] docs/PRESENTATION_SCRIPT.md         — lời thoại
+[x] docs/PRESENTATION_FACTS.md          — số đã kiểm chứng + 4 lỗi đã sửa
 [x] results/runs/dataset_info.md         — Phần 2 (bảng 10 lớp + stats)
 [x] results/runs/per_class_samples.png   — Phần 2
 [x] results/runs/class_distribution.png  — Phần 3
 [x] results/runs/pixel_histogram.png     — Phần 3
-[x] results/runs/hyperopt.md             — Phần 4
+[x] results/runs/hyperopt.md             — Phần 4 (⚠️ random 12 trials)
+[x] results/runs/architecture_selection.md — Phần 4 (dự phòng)
 [x] results/runs/loss_curve.png          — Phần 5
 [x] results/runs/accuracy_curve.png      — Phần 5
 [x] results/runs/confusion_matrix.png    — Phần 6
 [x] results/runs/predictions.png         — Phần 6
-[ ] docs/reports/nguoi1_models_report.md — dự phòng
+[ ] docs/reports/nguoi1_models_report.md — dự phòng (bảng grid 8 trials)
 [ ] docs/reports/nguoi3_evaluation_report.md — dự phòng
 ```
 
@@ -288,7 +314,7 @@ cd e:\lab1
 $env:PYTHONPATH = "."
 python main.py                          # Train lại từ đầu
 python src/evaluation/run_evalution.py   # Đánh giá + sinh confusion matrix
-pytest tests/training -v                # 27 unit tests
+pytest tests/training -v                # 23 unit tests
 ```
 
 ### Những con số phải nhớ (in đậm trong script)
@@ -297,14 +323,16 @@ pytest tests/training -v                # 27 unit tests
 |----|---------|
 | **92.10%** | Test accuracy — kết quả cuối cùng |
 | **92.11 / 92.10 / 92.09** | Precision / Recall / F1 (macro) |
-| **60.000 / 6.000 / 10.000** | Train / Val / Test |
+| **54.000 / 6.000 / 10.000** | Train / Val / Test |
 | **0.286 / 0.353** | Mean / Std của pixel |
-| **90.53%** | Val accuracy của grid search (best trial) |
+| **90.53%** | Val accuracy — grid search (best trial) |
+| **89.15%** | Val accuracy — random search (best trial, 3 epoch) |
+| **75 s/epoch** | Tốc độ train `simple_cnn` (CPU) |
 | **0.215** | Val loss thấp nhất (epoch 11) |
 | **185** | Tổng số lần nhầm Shirt ↔ T-shirt |
 | **4** | Số kiến trúc mô hình |
-| **8 trials × 3 epoch** | Quy mô grid search |
-| **27** | Số unit test |
+| **8 trials (grid) + 12 trials (random)** | Quy mô tìm kiếm siêu tham số |
+| **23** | Số unit test (`tests/training/`) |
 
 ### Câu hỏi giảng viên thường hỏi & cách trả lời
 
@@ -315,7 +343,9 @@ pytest tests/training -v                # 27 unit tests
 | "Test set có bị dùng khi train không?" | Không — chỉ mở 1 lần ở bước đánh giá cuối, sau khi mọi quyết định đã chốt |
 | "Tại sao không dùng GPU?" | Máy không có CUDA; CPU vẫn đủ vì ảnh 28×28 và dataset chỉ 60K ảnh |
 | "Reproducibility?" | Seed 42 cố định ở config, split, và training; cùng config → cùng kết quả |
-| "Code có phải của bạn không?" | Có — chia theo 3 module `data/` / `models/` / `training/` + `evaluation/`, có 27 unit test, log chi tiết trong `docs/reports/` |
+| "Code có phải của bạn không?" | Có — chia theo 3 module `data/` / `models/` / `training/` + `evaluation/`, có **23 unit test** cho phần training, log chi tiết trong `docs/reports/` |
+| "Grid 8 trials hay random 12 trials?" | **Cả hai.** Grid quét 2 model × 2 lr × 2 optimizer = 8 tổ hợp đầy đủ, tất định. Random quét cả 4 model, 12 trials. Em chốt theo grid vì không bỏ sót tổ hợp. |
+| "Vì sao best trial trên đĩa là resnet_mini mà em chọn simple_cnn?" | Đó là lần chạy **random 3 epoch** — quá ngắn nên nhiễu cao. Grid cho thấy `simple_cnn` thắng 90.53%. Ngoài ra `resnet_mini` chậm gấp 3.2× mà chỉ kém 0.35%. |
 
 ---
 
