@@ -6,6 +6,42 @@
 
 ---
 
+## 🚀 MỞ FILE NÀO Ở ĐÂU — BẢNG CHỈ DẪN THEO THỨ TỰ
+
+> Mở sẵn 8 cửa sổ này trước khi lên lớp, xếp theo thứ tự sẽ nói.
+
+| # | Mở file | Dùng khi nào | Nói gì khi chỉ vào |
+|---|----------|--------------|-------------------|
+| **1** | `docs/PRESENTATION_SCRIPT.md` | Xuyên suốt | Chính là lời thoại này — để ở chế độ Reader (F11) |
+| **2** | `results/runs/per_class_samples.png` | Phần 2 (1:00) | 10 lớp, mỗi lớp 1 ảnh mẫu |
+| **3** | `results/runs/class_distribution.png` | Phần 3 (1:45) | 10 cột đều nhau = cân bằng |
+| **4** | `results/runs/pixel_histogram.png` | Phần 3 (2:00) | Histogram phân bố cường độ pixel |
+| **5** | `results/runs/hyperopt.md` | Phần 4 (4:30) | Bảng 8 trials grid search — **mở bằng Notepad/VSCode** |
+| **6** | `results/runs/loss_curve.png` | Phần 5 (6:30) | Vùng epoch 11–13: val loss bắt đầu tăng |
+| **7** | `results/runs/accuracy_curve.png` | Phần 5 (6:45) | Train acc vẫn tăng, val acc đi ngang |
+| **8** | `results/runs/confusion_matrix.png` | Phần 6 (8:00) | Hàng Shirt & cột T-shirt sáng nhất |
+| **9** | `results/runs/predictions.png` | Phần 6 (8:45) | Ô xanh = đúng, ô đỏ = sai |
+| **10** | `docs/reports/nguoi1_models_report.md` | Dự phòng | Bảng so sánh 4 kiến trúc + params |
+| **11** | `docs/reports/nguoi3_evaluation_report.md` | Dự phòng | Bảng metrics test set + top-5 nhầm lẫn |
+| **12** | `docs/PROJECT_METHODOLOGY.md` | Dự phòng | Tài liệu phương pháp đầy đủ |
+
+### Thứ tự tab nên mở (bấm `Ctrl+Tab` để chuyển nhanh)
+
+```
+Tab 1: PRESENTATION_SCRIPT.md     ← đang đọc
+Tab 2: per_class_samples.png      ← Phần 2
+Tab 3: class_distribution.png     ← Phần 3
+Tab 4: hyperopt.md                ← Phần 4
+Tab 5: loss_curve.png             ← Phần 5
+Tab 6: accuracy_curve.png         ← Phần 5
+Tab 7: confusion_matrix.png       ← Phần 6
+Tab 8: predictions.png            ← Phần 6
+```
+
+> 💡 **Mẹo thao tác:** Trong VSCode, dùng `Ctrl+P` → gõ tên file → Enter để mở nhanh không cần rời bàn phím. Với file `.png`, bấm chuột phải → **Open Preview** để phóng to fullscreen.
+
+---
+
 ## 📋 Tóm tắt phân bố thời gian
 
 | Phần | Nội dung | Thời gian | Mốc |
@@ -69,7 +105,10 @@
 
 > Hai kỹ thuật em áp dụng ở đây: **Stratified Split** để mỗi lớp có đúng 600 ảnh trong tập validation như dataset gốc, và **random seed cố định = 42** để mọi lần chạy lại đều cho kết quả giống hệt nhau — tức là kết quả **reproducible**."
 
-**📎 Mở slide: các biểu đồ EDA (class_distribution, per_class_samples, pixel_histogram)**
+**📎 Mở tab 3: `results/runs/class_distribution.png`** — 10 cột cao đều nhau → chứng minh "cân bằng hoàn hảo" bằng mắt
+**📎 Mở tab 4: `results/runs/pixel_histogram.png`** — histogram phân bố cường độ pixel
+
+**📎 Mở tab 2: `results/runs/per_class_samples.png`** — lưới 10 ảnh mẫu, mỗi ảnh một lớp
 
 **💡 Câu hỏi dự kiến:** *"Vì sao chọn seed 42?"* → 42 là số quen thuộc trong văn hóa đại chúng (trong "Hitchhiker's Guide to the Galaxy" 42 là câu trả lời cho mọi câu hỏi), và quan trọng hơn là nó chỉ là **một quy ước bất kỳ nhưng cố định** — điều duy nhất cần là nó không đổi.
 
@@ -104,7 +143,7 @@
 
 > Điểm em muốn lưu ý: em **không** chọn mô hình dựa trên cảm tính, mà dựa trên **số liệu validation**. Tập test được giữ kín hoàn toàn cho tới bước đánh giá cuối."
 
-**📎 Mở slide: bảng kết quả grid search 8 trials**
+**📎 Mở tab 4: `results/runs/hyperopt.md`** — bảng 8 trials grid search (mở bằng VSCode/Notepad để copy bảng vào slide)
 
 **💡 Câu hỏi dự kiến:** *"Vì sao không dùng mô hình lớn hơn để đạt điểm cao hơn?"* → Vì mục tiêu là 90% và SimpleCNN đã đạt 92.1%, vượt mục tiêu. Ngoài ra ResNetMini đã được cài và thử nghiệm nhưng hiệu quả không hơn trên dataset nhỏ này, và CNN đơn giản chạy nhanh hơn ~2×.
 
@@ -138,7 +177,8 @@
 
 > Em cũng vẽ biểu đồ loss và accuracy để trực quan hóa quá trình này."
 
-**📎 Mở slide: đồ thị loss_curve.png và accuracy_curve.png — chỉ vào khoảng epoch 11–13**
+**📎 Mở tab 5: `results/runs/loss_curve.png`** — chỉ vào khoảng epoch 11–13 (val loss bắt đầu tăng lại)
+**📎 Mở tab 6: `results/runs/accuracy_curve.png`** — chỉ vào khoảng epoch 13 (train acc vẫn tăng, val acc đi ngang)
 
 ---
 
@@ -175,7 +215,8 @@
 
 > Và em lưu lại **final model kèm metrics và config**, để người khác mở ra là biết ngay model này đạt bao nhiêu, dùng siêu tham số gì, và **tái tạo lại được kết quả**."
 
-**📎 Mở slide: confusion matrix heatmap + predictions.png**
+**📎 Mở tab 7: `results/runs/confusion_matrix.png`** — chỉ vào HÀNG "Shirt" và CỘT "T-shirt/top" (ô sáng nhất), rồi đến hàng "T-shirt/top" cột "Shirt"
+**📎 Mở tab 8: `results/runs/predictions.png`** — lưới ảnh, ô xanh lá = dự đoán đúng, ô đỏ = sai
 
 **💡 Câu hỏi dự kiến:** *"Nếu muốn cải thiện thì làm gì?"* → Em đã tính sẵn trong tài liệu: Data Augmentation (+1–2%), ResNet18 (+1–3%), Learning rate scheduler (+0.5–1%), Ensemble (+1–2%). Nhưng em cũng thừa nhận trade-off: cải thiện 1–2% là **không đáng** khi phải tăng thời gian train gấp nhiều lần và độ phức tạp vận hành.
 
@@ -203,16 +244,38 @@
 
 ### Danh sách slide nên có (8 slide)
 
-| # | Nội dung slide | Nguồn hình ảnh |
-|---|----------------|----------------|
+| # | Nội dung slide | Nguồn hình ảnh (copy từ file) |
+|---|----------------|-------------------------------|
 | 1 | Tiêu đề + tên + GitHub | — |
-| 2 | Bài toán + 10 lớp + dataset stats | `results/runs/per_class_samples.png` |
-| 3 | EDA | `results/runs/class_distribution.png`, `pixel_histogram.png` |
-| 4 | 4 kiến trúc + so sánh | Bảng tham số |
-| 5 | Grid search 8 trials | Bảng trong `docs/reports/nguoi1_models_report.md` |
-| 6 | Đồ thị training | `results/runs/loss_curve.png`, `accuracy_curve.png` |
-| 7 | Confusion matrix + dự đoán | `results/runs/confusion_matrix.png`, `predictions.png` |
+| 2 | Bài toán + 10 lớp | `results/runs/per_class_samples.png` |
+| 3 | EDA: cân bằng lớp + phân bố pixel | `results/runs/class_distribution.png` + `pixel_histogram.png` |
+| 4 | 4 kiến trúc + số tham số | Bảng trong `docs/reports/nguoi1_models_report.md` §1 |
+| 5 | Grid search 8 trials | Copy bảng từ `results/runs/hyperopt.md` |
+| 6 | Đồ thị training (2 ảnh cạnh nhau) | `results/runs/loss_curve.png` + `accuracy_curve.png` |
+| 7 | Confusion matrix + dự đoán | `results/runs/confusion_matrix.png` + `predictions.png` |
 | 8 | Tổng kết + hướng phát triển | — |
+
+### File nào cần mở trước (checklist in ra giấy)
+
+```
+[x] docs/PRESENTATION_SCRIPT.md         — lời thoại
+[x] results/runs/per_class_samples.png   — Phần 2
+[x] results/runs/class_distribution.png  — Phần 3
+[x] results/runs/pixel_histogram.png     — Phần 3
+[x] results/runs/hyperopt.md             — Phần 4
+[x] results/runs/loss_curve.png          — Phần 5
+[x] results/runs/accuracy_curve.png      — Phần 5
+[x] results/runs/confusion_matrix.png    — Phần 6
+[x] results/runs/predictions.png         — Phần 6
+[ ] docs/reports/nguoi1_models_report.md — dự phòng
+[ ] docs/reports/nguoi3_evaluation_report.md — dự phòng
+```
+
+### Nếu không dùng PowerPoint — trình bày trực tiếp bằng VSCode
+
+Mở 8 tab theo thứ tự, dùng `Ctrl+Tab` chuyển tab. Với file `.png`:
+- Bấm chuột phải → **Open Preview** → phóng to fullscreen bằng `F11`
+- Hoặc kéo file `.png` vào cửa sổ trình duyệt để xem full màn hình
 
 ### Demo trực tiếp (nếu thầy yêu cầu chạy thử)
 
