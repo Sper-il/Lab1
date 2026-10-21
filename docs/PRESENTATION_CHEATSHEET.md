@@ -44,7 +44,7 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 >
 > → mở `results/runs/dataset_info.md`
 >
-> Dataset có **70.000 ảnh**, chia đều 10 lớp — mỗi lớp 6.000 ảnh gốc.
+> Dataset có **70.000 ảnh**, chia đều 10 lớp — khoảng 6.000 ảnh gốc mỗi lớp.
 >
 > → mở `results/runs/per_class_samples.png`
 >
@@ -76,13 +76,13 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 
 | Tập | Số ảnh | Vai trò |
 |-----|--------|----------|
-| Train | 54.000 | Model học trọng số |
-| Validation | 6.000 | Đánh giá khi train, quyết định dừng |
+| Train | 50.000 | Model học trọng số |
+| Validation | 10.000 | Đánh giá khi train, quyết định dừng |
 | Test | 10.000 | Giữ kín, mở 1 lần ở cuối |
 
 > Nếu chỉ chia 2 tập, model có thể học thuộc cả test → điểm đẹp hơn thực tế, tức là **đánh giá sai**.
 >
-> Hai kỹ thuật áp dụng: **stratified split** để mỗi lớp có đúng 600 ảnh trong validation, và **seed cố định 42** để chạy lại ra kết quả y hệt."
+> Hai kỹ thuật áp dụng: **stratified split** để validation cân bằng giữa 10 lớp, và **seed cố định 42** để chạy lại ra kết quả y hệt."
 
 ---
 
@@ -253,7 +253,7 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 |--------|----------|
 | **92.10%** | Test accuracy — kết quả cuối |
 | **92.11 / 92.10 / 92.09%** | Precision / Recall / F1 (macro) |
-| **54.000 / 6.000 / 10.000** | Train / Val / Test |
+| **50.000 / 10.000 / 10.000** | Train / Val / Test |
 | **0.286 / 0.353** | Mean / Std của pixel |
 | **90.53%** | Best val acc — Grid 8 trials |
 | **89.15%** | Best val acc — Random 12 trials |
@@ -271,7 +271,7 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 | Đừng nói | Nói thay |
 |----------|---------|
 | "27 unit test" | **23 unit test** |
-| "Train 60.000 ảnh" | **54.000** train, 6.000 val, 10.000 test |
+| "Train 60.000 ảnh" | **50.000** train, 10.000 val, 10.000 test |
 | "khoảng 60 s/epoch" | **75 s/epoch** |
 | "Grid 8 trials có ResNet" | Grid chỉ **simple_cnn + deep_mlp** |
 | "Best trial là ResNet" | Đó là **random 3 epoch**; em chốt theo **grid = simple_cnn 90.53%** |
