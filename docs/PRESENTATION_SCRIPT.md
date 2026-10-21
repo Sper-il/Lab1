@@ -13,6 +13,7 @@
 | # | Mở file | Dùng khi nào | Nói gì khi chỉ vào |
 |---|----------|--------------|-------------------|
 | **1** | `docs/PRESENTATION_SCRIPT.md` | Xuyên suốt | Chính là lời thoại này — để ở chế độ Reader (F11) |
+| **1b** | `results/runs/dataset_info.md` | Phần 2 (1:00) | **Bảng 10 lớp + thông số dataset** ← file này là bảng đó |
 | **2** | `results/runs/per_class_samples.png` | Phần 2 (1:00) | 10 lớp, mỗi lớp 1 ảnh mẫu |
 | **3** | `results/runs/class_distribution.png` | Phần 3 (1:45) | 10 cột đều nhau = cân bằng |
 | **4** | `results/runs/pixel_histogram.png` | Phần 3 (2:00) | Histogram phân bố cường độ pixel |
@@ -29,13 +30,14 @@
 
 ```
 Tab 1: PRESENTATION_SCRIPT.md     ← đang đọc
-Tab 2: per_class_samples.png      ← Phần 2
-Tab 3: class_distribution.png     ← Phần 3
-Tab 4: hyperopt.md                ← Phần 4
-Tab 5: loss_curve.png             ← Phần 5
-Tab 6: accuracy_curve.png         ← Phần 5
-Tab 7: confusion_matrix.png       ← Phần 6
-Tab 8: predictions.png            ← Phần 6
+Tab 2: dataset_info.md            ← Phần 2 (bảng 10 lớp + stats)
+Tab 3: per_class_samples.png      ← Phần 2
+Tab 4: class_distribution.png     ← Phần 3
+Tab 5: hyperopt.md                ← Phần 4
+Tab 6: loss_curve.png             ← Phần 5
+Tab 7: accuracy_curve.png         ← Phần 5
+Tab 8: confusion_matrix.png       ← Phần 6
+Tab 9: predictions.png            ← Phần 6
 ```
 
 > 💡 **Mẹo thao tác:** Trong VSCode, dùng `Ctrl+P` → gõ tên file → Enter để mở nhanh không cần rời bàn phím. Với file `.png`, bấm chuột phải → **Open Preview** để phóng to fullscreen.
@@ -105,10 +107,11 @@ Tab 8: predictions.png            ← Phần 6
 
 > Hai kỹ thuật em áp dụng ở đây: **Stratified Split** để mỗi lớp có đúng 600 ảnh trong tập validation như dataset gốc, và **random seed cố định = 42** để mọi lần chạy lại đều cho kết quả giống hệt nhau — tức là kết quả **reproducible**."
 
-**📎 Mở tab 3: `results/runs/class_distribution.png`** — 10 cột cao đều nhau → chứng minh "cân bằng hoàn hảo" bằng mắt
-**📎 Mở tab 4: `results/runs/pixel_histogram.png`** — histogram phân bố cường độ pixel
+**📎 Mở tab 4: `results/runs/class_distribution.png`** — 10 cột cao đều nhau → chứng minh "cân bằng hoàn hảo" bằng mắt
+**📎 Mở tab 4b: `results/runs/pixel_histogram.png`** — histogram phân bố cường độ pixel
 
-**📎 Mở tab 2: `results/runs/per_class_samples.png`** — lưới 10 ảnh mẫu, mỗi ảnh một lớp
+**📎 Mở tab 2: `results/runs/dataset_info.md`** — bảng 10 lớp (kèm số lượng train/val/test từng lớp) + bảng thông số dataset (mean 0.286, std 0.353, shape (1,28,28), 60.000 mẫu hợp lệ)
+**📎 Mở tab 3: `results/runs/per_class_samples.png`** — lưới 10 ảnh mẫu, mỗi ảnh một lớp
 
 **💡 Câu hỏi dự kiến:** *"Vì sao chọn seed 42?"* → 42 là số quen thuộc trong văn hóa đại chúng (trong "Hitchhiker's Guide to the Galaxy" 42 là câu trả lời cho mọi câu hỏi), và quan trọng hơn là nó chỉ là **một quy ước bất kỳ nhưng cố định** — điều duy nhất cần là nó không đổi.
 
@@ -247,7 +250,7 @@ Tab 8: predictions.png            ← Phần 6
 | # | Nội dung slide | Nguồn hình ảnh (copy từ file) |
 |---|----------------|-------------------------------|
 | 1 | Tiêu đề + tên + GitHub | — |
-| 2 | Bài toán + 10 lớp | `results/runs/per_class_samples.png` |
+| 2 | Bài toán + 10 lớp + dataset stats | Copy bảng từ `results/runs/dataset_info.md` + ảnh `per_class_samples.png` |
 | 3 | EDA: cân bằng lớp + phân bố pixel | `results/runs/class_distribution.png` + `pixel_histogram.png` |
 | 4 | 4 kiến trúc + số tham số | Bảng trong `docs/reports/nguoi1_models_report.md` §1 |
 | 5 | Grid search 8 trials | Copy bảng từ `results/runs/hyperopt.md` |
@@ -259,6 +262,7 @@ Tab 8: predictions.png            ← Phần 6
 
 ```
 [x] docs/PRESENTATION_SCRIPT.md         — lời thoại
+[x] results/runs/dataset_info.md         — Phần 2 (bảng 10 lớp + stats)
 [x] results/runs/per_class_samples.png   — Phần 2
 [x] results/runs/class_distribution.png  — Phần 3
 [x] results/runs/pixel_histogram.png     — Phần 3

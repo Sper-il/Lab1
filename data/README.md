@@ -11,8 +11,8 @@ data/
 │   ├── FashionMNIST/                 # archive gốc từ torchvision
 │   └── _torchvision_cache/           # cache nội bộ của torchvision (gitignore)
 ├── processed/                        # gitignore — ảnh đã split ra PNG
-│   ├── train/<class_id>/*.png        # 50.000 ảnh (chia từ 60k train gốc)
-│   ├── val/<class_id>/*.png          # 10.000 ảnh (lấy 10k từ train gốc)
+│   ├── train/<class_id>/*.png        # 54.000 ảnh (90% từ 60k train gốc)
+│   ├── val/<class_id>/*.png          # 6.000 ảnh (10% từ 60k train gốc)
 │   └── test/<class_id>/*.png         # 10.000 ảnh (gốc từ test set)
 ├── splits/                           # metadata thuần text (committed)
 │   └── split_info.txt                # thông tin split: sizes, seed
@@ -25,6 +25,8 @@ data/
 > - `data/splits/` = metadata (file text nhỏ, có thể commit)
 
 ## 10 lớp (theo thứ tự index)
+
+> Bảng đầy đủ kèm số lượng train/val/test từng lớp: `results/runs/dataset_info.md`
 
 | ID | Tên lớp |
 |----|---------|
@@ -39,7 +41,7 @@ data/
 | 8  | Bag |
 | 9  | Ankle boot |
 
-Mỗi lớp có **6.000 ảnh train + 1.000 ảnh val + 1.000 ảnh test** (chia đều từ
+Mỗi lớp có **5.400 ảnh train + 600 ảnh val + 1.000 ảnh test** (chia đều từ
 6.000 train + 1.000 test gốc của FashionMNIST).
 
 ## Cách sinh dữ liệu
@@ -53,7 +55,7 @@ python -m src.data.split --root data/processed --val-split 10000 --seed 42
 Script này sẽ:
 
 1. Tải FashionMNIST gốc (~30 MB) về `data/raw/_torchvision_cache/` (lần đầu).
-2. Chia 60.000 ảnh train gốc thành **50.000 train + 10.000 val** (random, seed=42).
+2. Chia 60.000 ảnh train gốc thành **54.000 train + 6.000 val** (random, seed=42).
 3. Ghi tất cả 70.000 ảnh ra `.png` (28×28, grayscale) vào `data/processed/`
    với tên `<class_name>_<original_idx>.png` trong folder tương ứng.
 4. In bảng số lượng ảnh / lớp / split.
@@ -88,7 +90,7 @@ pytest tests/test_dataset.py -v
 | Tham số | Mặc định | Ý nghĩa |
 |---------|----------|---------|
 | `--root` | `data/processed` | Thư mục output (ảnh đã split) |
-| `--val-split` | `10000` | Số mẫu validation lấy từ train gốc |
+| `--val-split` | `0.1` | Tỷ lệ validation lấy từ train gốc (10% = 6.000 ảnh) |
 | `--seed` | `42` | Random seed cho split (reproducible) |
 
 ## Tại sao `.png` thay vì tensor trong RAM?
