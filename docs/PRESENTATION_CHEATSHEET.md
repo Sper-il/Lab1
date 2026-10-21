@@ -90,9 +90,13 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 
 > "Bốn bước, mỗi bước một quyết định có căn cứ từ số liệu.
 >
-> **Bước 1 — Baseline.** Trước khi làm gì phức tạp, em dựng MLP đơn giản: **Flatten 784 → Linear(256) → ReLU → Linear(128) → ReLU → Linear(10)**. Để có **mức sàn** so sánh — không có baseline thì không phân biệt được 'phức tạp mà giỏi' với 'chỉ chậm hơn'.
+> **Bước 1 — Baseline.** Trước khi làm gì phức tạp, em dựng MLP 1 tầng ẩn đúng theo `PHASE2_PLAN.md`: **Flatten 784 → Linear(784→256) → ReLU → Dropout(0.2) → Linear(256→10)** — **203.530 tham số**, train lr=1e-3 đạt val_acc **86.77%** trong 2 epoch. Đây là **mức sàn** — cao hơn 10% ngẫu nhiên nên pipeline chạy đúng, nhưng thấp hơn cả 3 kiến trúc còn lại.
 >
-> **Bước 2 — So sánh 4 kiến trúc**, đăng ký qua `ModelFactory` — một registry, nên thêm kiến trúc mới chỉ cần **1 dòng code**.
+> Hai ý nghĩa khi dựng baseline:
+> 1. **Sanity check pipeline.** Nếu baseline không học được (>10%) thì hỏng ở data, loss hoặc optimizer — không phải kiến trúc. Đạt 86.77% chứng minh data, loss, optimizer và vòng train đều đúng.
+> 2. **Mức sàn để so sánh.** Mọi kiến trúc phức tạp hơn phải **vượt** 86.77% mới đáng giữ. ResNet 88.48% — cao hơn baseline 1.71%, tức kiến trúc mới có giá trị. Nếu chỉ đạt 87.0% thì 174.970 tham số và 239s/epoch đều lãng phí.
+>
+> **Bước 2 — So sánh 4 kiến trúc**
 >
 > → mở `results/runs/architecture_selection.md`
 >
@@ -103,13 +107,13 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 > | **SimpleCNN** | **421.642** | **88.83%** | **75** |
 > | ResNetMini | 174.970 | 88.48% | 239 |
 >
-> **Vì sao CNN thắng?** MLP coi **mỗi pixel độc lập**, không thấy cấu trúc 2D. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture. Còn ResNetMini kém 0.35% nhưng **chậm gấp 3,2×** — ResNet cần tập dữ liệu lớn hơn nhiều (ImageNet 1.2M ảnh) mới phát huy.
+> **Vì sao CNN thắng?** MLP coi **mỗi pixel độc lập**, không thấy cấu trúc 2D. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture. ResNetMini kém 0.35% nhưng **chậm gấp 3,2×** — ResNet cần tập dữ liệu lớn hơn nhiều (ImageNet 1.2M ảnh) mới phát huy.
 >
 > Em chốt **SimpleCNN**: Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → Linear(3136→128) → Dropout(0.5) → Linear(128→10).
 >
 > **Bước 3 — Tinh chỉnh siêu tham số, hai lần thử nghiệm.**
 >
-> **Lần 1 — Grid search 8 trials × 3 epoch**, quét đủ 2 model × 2 learning rate × 2 optimizer, khoảng 19 phút CPU. Grid **tất định** và **phủ kín**.
+> **Lần 1 — Grid search 8 trials × 3 epoch**, quét 2 model × 2 learning rate × 2 optimizer, ~19 phút CPU. Grid **tất định** và **phủ kín**.
 >
 > | Model | LR | Optim | Val Acc |
 > |-------|-----|-------|---------|
@@ -122,13 +126,13 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 > | simple_cnn | 0.001 | sgd | 80.83% |
 > | simple_cnn | 0.0005 | sgd | 78.13% |
 >
-> Ba kết luận: **Adam thắng SGD ở cùng learning rate, chênh 7–10%** — Adam duy trì **một learning rate riêng cho từng tham số** nên tự giảm tốc khi gradient dao động mạnh, còn SGD dễ lạc khỏi minimum trên loss surface gồ ghề của CNN. **`simple_cnn` thắng `deep_mlp` ở *mọi* tổ hợp** — nhắc lại lý do cấu trúc 2D. Và **SGD học chậm**: lr=0.0005 chỉ 78–82% sau 3 epoch.
+> Ba kết luận: **Adam thắng SGD, chênh 7–10%** ở cùng learning rate — Adam duy trì **một learning rate riêng cho từng tham số** nên tự giảm tốc khi gradient dao động mạnh, còn SGD dễ lạc khỏi minimum trên loss surface gồ ghề của CNN. **`simple_cnn` thắng `deep_mlp` ở *mọi* tổ hợp** — nhắc lại lý do cấu trúc 2D. Và **SGD học chậm**: lr=0.0005 chỉ 78–82% sau 3 epoch.
 >
-> **Lần 2 — Random search 12 trials × 3 epoch**, quét cả **4 kiến trúc** — em muốn cho ResNet cơ hội cạnh tranh công bằng.
+> **Lần 2 — Random search 12 trials × 3 epoch**, quét cả **4 kiến trúc** — cho ResNet cơ hội cạnh tranh công bằng.
 >
 > → mở `results/runs/hyperopt.md`
 >
-> Trial tốt nhất là **resnet_mini + adam + lr=0.01, đạt 89.15%**. Em vẫn **chốt theo grid**, vì grid **phủ đầy đủ** còn random **có thể trượt** ô tốt, và grid **tất định** — quan trọng cho reproducibility. ResNet thua 1.4% không phải do nó tệ, mà vì **3 epoch quá ngắn**.
+> Trial tốt nhất **resnet_mini + adam + lr=0.01 = 89.15%**. Em vẫn **chốt theo grid**, vì grid **phủ đầy đủ** còn random **có thể trượt** ô tốt, và grid **tất định** — quan trọng cho reproducibility. ResNet thua 1.4% vì **3 epoch quá ngắn**.
 >
 > **Bước 4 — Chốt cấu hình:** SimpleCNN + Adam + lr=0.001 + batch 128 + dropout 0.5 + 15 epoch + CrossEntropyLoss.
 >
@@ -142,11 +146,11 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 >
 > **Cấu trúc code.** Em viết lớp `Trainer`, mỗi epoch gồm 2 vòng. **Vòng train** là 5 bước chuẩn PyTorch: `zero_grad` → **forward** (ra logits B×10) → **loss** → **backward** → **step** (cập nhật trọng số theo Adam).
 >
-> **Vòng validate** khác 3 điểm: `model.eval()` tắt dropout và dùng **statistics đã tích lũy** của BatchNorm thay vì batch hiện tại — quên bước này thì validation sai hoàn toàn; `torch.no_grad()` không tính gradient nên **tiết kiệm khoảng 50% bộ nhớ**; và model **không học** trên validation.
+> **Vòng validate** khác 3 điểm: `model.eval()` tắt dropout, dùng **statistics tích lũy** của BatchNorm — quên thì validation sai hoàn toàn; `torch.no_grad()` không tính gradient, **tiết kiệm ~50% bộ nhớ**; model **không học** trên validation.
 >
 > Loss là **CrossEntropyLoss** — gộp cả Softmax và Negative Log Likelihood vào một hàm, nhận thẳng **logits** thay vì xác suất để ổn định số học.
 >
-> **Hai callback:** *EarlyStopping* theo `val_loss`, patience = 5, min_delta = 0.0001 — không giảm thêm 0.0001 trong 5 epoch liên tiếp thì dừng, vì lúc đó model đã **overfit**. Và *Checkpoint* lưu `best_model.pt` (theo val_loss thấp nhất) + `last_model.pt` (để resume nếu crash), kèm weights, optimizer state và metrics.
+> **Hai callback:** *EarlyStopping* theo `val_loss`, patience = 5, min_delta = 0.0001 — không giảm thêm 0.0001 trong 5 epoch liên tiếp thì dừng vì model đã **overfit**. *Checkpoint* lưu `best_model.pt` + `last_model.pt` kèm weights, optimizer state và metrics.
 >
 > Em chạy **15 epoch**:
 >
@@ -163,12 +167,12 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 >
 > → mở `results/runs/accuracy_curve.png`
 >
-> **Train accuracy tăng đều lên 94.72%, còn validation đi ngang quanh 92.8%** từ epoch 13. Khoảng cách ~2% đó là model học thuộc.
+> **Train accuracy tăng đều lên 94.72%, còn validation đi ngang quanh 92.8%** từ epoch 13. Khoảng cách ~2% là model học thuộc.
 >
 > Ba điều em muốn nói rõ:
-> 1. **EarlyStopping hoạt động đúng.** Sau epoch 11 chỉ có 4 epoch không cải thiện nên nó **chưa kích hoạt** — dừng sớm thì em mất luôn 4 epoch cải thiện nhỏ. Bài học: **patience không phải càng nhỏ càng tốt**.
-> 2. **Em lưu theo `val_loss` chứ không phải `val_acc`.** Nếu theo val_acc thì đỉnh là epoch 13 (92.88%), cao hơn epoch 11 (92.85%) — chênh chỉ 0.03%, trong khi val_loss cho thấy rõ xu hướng. Chọn loss chuẩn hơn vì **loss phạt cả trường hợp model "mơ hồ"** — đoán sai nhưng vẫn trả xác suất cao.
-> 3. **Overfit ở mức nhẹ** — val accuracy chỉ giảm 0.05% từ đỉnh xuống cuối (92.85% → 92.80%), model vẫn dùng được.
+> 1. **EarlyStopping hoạt động đúng.** Sau epoch 11 chỉ có 4 epoch không cải thiện nên nó **chưa kích hoạt** — dừng sớm thì em mất 4 epoch cải thiện nhỏ.
+> 2. **Em lưu theo `val_loss` chứ không phải `val_acc`.** Val_acc cao nhất là epoch 13 (92.88%), cao hơn epoch 11 (92.85%) chỉ 0.03% — không có ý nghĩa. Chọn loss chuẩn hơn vì **loss phạt cả trường hợp model "mơ hồ"**, còn accuracy thì không.
+> 3. **Overfit ở mức nhẹ** — val accuracy chỉ giảm 0.05% (92.85% → 92.80%).
 
 ---
 
