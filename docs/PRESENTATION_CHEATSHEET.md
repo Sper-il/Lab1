@@ -90,7 +90,7 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 
 > "Bốn bước, mỗi bước một quyết định có căn cứ từ số liệu.
 >
-> **Bước 1 — Baseline.** Trước khi làm gì phức tạp, em dựng MLP 1 tầng ẩn đúng theo `PHASE2_PLAN.md`: **Flatten 784 → Linear(784→256) → ReLU → Dropout(0.2) → Linear(256→10)** — **203.530 tham số**, train lr=1e-3 đạt val_acc **86.77%** trong 2 epoch. Đây là **mức sàn** — cao hơn 10% ngẫu nhiên nên pipeline chạy đúng, nhưng thấp hơn cả 3 kiến trúc còn lại.
+> **Bước 1 — Baseline.** Em dựng MLP 1 tầng ẩn đúng theo `PHASE2_PLAN.md`: **Flatten 784 → Linear(784→256) → ReLU → Dropout(0.2) → Linear(256→10)** — **203.530 tham số**, train lr=1e-3 đạt val_acc **86.77%** trong 2 epoch. Đây là **mức sàn** — cao hơn 10% ngẫu nhiên nên pipeline chạy đúng.
 >
 > Hai ý nghĩa khi dựng baseline:
 > 1. **Sanity check pipeline.** Nếu baseline không học được (>10%) thì hỏng ở data, loss hoặc optimizer — không phải kiến trúc. Đạt 86.77% chứng minh data, loss, optimizer và vòng train đều đúng.
@@ -107,9 +107,11 @@ Dự phòng: `docs/reports/nguoi1_models_report.md` §2.2 (bảng grid 8 trials)
 > | **SimpleCNN** | **421.642** | **88.83%** | **75** |
 > | ResNetMini | 174.970 | 88.48% | 239 |
 >
-> **Vì sao CNN thắng?** MLP coi **mỗi pixel độc lập**, không thấy cấu trúc 2D. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture. ResNetMini kém 0.35% nhưng **chậm gấp 3,2×** — ResNet cần tập dữ liệu lớn hơn nhiều (ImageNet 1.2M ảnh) mới phát huy.
+> **Vì sao CNN thắng?** MLP coi **mỗi pixel độc lập**, không thấy cấu trúc 2D. CNN trượt filter 3×3 và **chia sẻ trọng số**, nên học được đặc trưng không gian — cạnh, góc, texture.
 >
-> Em chốt **SimpleCNN**: Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → Linear(3136→128) → Dropout(0.5) → Linear(128→10).
+> **Em chốt SimpleCNN** vì nó **đẹp nhất về hiệu năng trên mỗi giây**: 88.83% trong 75s/epoch, nhanh gấp 3,2× ResNetMini mà còn chính xác hơn. ResNet cần tập dữ liệu lớn hơn nhiều (ImageNet 1.2M ảnh) mới phát huy, còn ở 60k ảnh thì skip connection chỉ làm chậm chứ không thêm giá trị.
+>
+> Cấu trúc: Conv(1→32) → ReLU → MaxPool → Conv(32→64) → ReLU → MaxPool → Flatten → Linear(3136→128) → ReLU → Dropout(0.5) → Linear(128→10).
 >
 > **Bước 3 — Tinh chỉnh siêu tham số, hai lần thử nghiệm.**
 >
