@@ -29,7 +29,7 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 
 | File | Description |
 |------|-------------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | System architecture |
+| [architecture.md](./architecture.md) | System architecture |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | Experiment log |
 
 ## Phase Reports (Subfolder: `reports/`)

@@ -346,25 +346,19 @@ Linear(128→10)                                 → [10] (logits cho 10 lớp)
 
 **Các phương pháp tìm kiếm áp dụng:**
 
-#### 1. Grid Search (Tìm kiếm lưới)
+#### Grid Search (Tìm kiếm lưới)
 
-**Cách hoạt động:** Thử tất cả tổ hợp có thể trong "lưới" giá trị.
+**Cách hoạt động:** Thử tất cả tổ hợp có thể trong "lưới" giá trị (tích Cartesian).
 
 | Ưu điểm | Nhược điểm |
 |---------|-----------|
 | Đảm bảo tìm được tổ hợp tốt nhất trong lưới | Chậm nếu không gian tìm kiếm lớn |
-| Dễ implement | Tốn tài nguyên tính toán |
+| Tất định — chạy lại ra đúng kết quả cũ | Tốn tài nguyên tính toán |
 
-#### 2. Random Search
-
-**Cách hoạt động:** Chọn ngẫu nhiên tổ hợp giá trị.
-
-| Ưu điểm | Nhược điểm |
-|---------|-----------|
-| Nhanh hơn Grid Search | Không đảm bảo tìm được tối ưu |
-| Hiệu quả khi không gian tìm kiếm lớn | Cần nhiều trials để tìm được tốt |
-
-**Trong dự án:** Thực hiện 8 trials × 3 epochs mỗi trial.
+**Trong dự án:** Thực hiện **16 trials × 10 epochs** mỗi trial, quét **4 kiến trúc**
+(`baseline_mlp`, `deep_mlp`, `simple_cnn`, `resnet_mini`) × 2 learning rate
+(0.001, 0.0005) × 2 optimizer (adam, sgd) — tổng cộng **160 epoch huấn luyện**.
+Nhờ grid **tất định và phủ kín**, không có tổ hợp nào bị bỏ sót.
 
 **Cấu hình tốt nhất tìm được:**
 
@@ -375,7 +369,7 @@ Linear(128→10)                                 → [10] (logits cho 10 lớp)
 | Learning rate | 0.001 |
 | Batch size | 128 |
 | Dropout | 0.5 |
-| Validation accuracy | 90.53% |
+| Validation accuracy | 92.33% |
 
 **Tại sao Adam tốt hơn SGD cho bài toán này?**
 - Adam tự điều chỉnh learning rate cho từng tham số
@@ -732,7 +726,7 @@ e:\lab1/
 │       ├── confusion_matrix.py # Trực quan hóa CM
 │       ├── visualizer.py       # Hiển thị dự đoán
 │       ├── model_io.py         # Lưu/tải mô hình
-│       └── run_evalution.py    # Entry point
+│       └── run_evaluation.py    # Entry point
 ├── tests/training/              # Unit tests (27 tests)
 ├── models/checkpoints/          # Mô hình đã lưu
 ├── results/runs/                # Biểu đồ và kết quả
@@ -752,7 +746,7 @@ e:\lab1/
 | 2 | `cd Lab1` | Vào thư mục dự án |
 | 3 | `pip install -r requirements.txt` | Cài thư viện cần thiết |
 | 4 | `python main.py` | Huấn luyện model |
-| 5 | `python src/evaluation/run_evalution.py` | Đánh giá trên test set |
+| 5 | `python src/evaluation/run_evaluation.py` | Đánh giá trên test set |
 | 6 | `pytest tests/training -v` | Chạy unit tests |
 
 ---
@@ -764,7 +758,7 @@ Dự án này minh họa một quy trình **Machine Learning hoàn chỉnh** t�
 1. **Hiểu dữ liệu** → EDA, thống kê, trực quan hóa
 2. **Chuẩn bị dữ liệu** → Làm sạch, chuẩn hóa, chia tập
 3. **Xây dựng mô hình** → MLP → CNN → ResNet
-4. **Tìm hyper tối ưu** → Grid/Random search
+4. **Tìm hyper tối ưu** → Grid search (tích Cartesian, tất định)
 5. **Huấn luyện** → Forward → Backward → Optimize
 6. **Đánh giá** → Accuracy, Precision, Recall, F1
 7. **Phân tích lỗi** → Confusion matrix, error analysis

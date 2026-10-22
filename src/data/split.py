@@ -4,14 +4,15 @@ Data Split Module
 Handles train/validation/test data splitting.
 
 Split Strategy:
-- Training: 80% of original training data
-- Validation: 10% of original training data  
-- Test: 100% of original test data
+- Training: 50,000 samples (10,000 per class)
+- Validation: 10,000 samples (1,000 per class)
+- Test: 10,000 samples — the dataset's own official test split,
+  loaded as-is and never re-split
 """
 
 import logging
 from pathlib import Path
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, Dict
 from dataclasses import dataclass
 
 import numpy as np
@@ -22,15 +23,28 @@ from torch.utils.data import DataLoader, Dataset, Subset
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+#: Fraction of the 60,000-sample training set held out for validation.
+#: ``1/6`` → 10,000 validation / 50,000 train, i.e. clean per-class counts
+#: of 1,000 / 5,000 out of 6,000. Used as the default by :func:`split_pipeline`
+#: and by every entry point, so the whole project shares one split.
+DEFAULT_VAL_RATIO = 1 / 6
+
 
 @dataclass
 class SplitConfig:
-    """Configuration for data splitting."""
-    train_ratio: float = 0.8
-    val_ratio: float = 0.1
-    test_ratio: float = 0.1
+    """Configuration for data splitting.
+
+    The official 60,000-sample training set is divided 50,000 train /
+    10,000 validation — i.e. exactly 5/6 and 1/6. Those fractions are used
+    instead of the round numbers 0.8/0.2 or 0.9/0.1 because only 1/6 lands
+    on clean per-class counts (5,000 / 1,000 out of 6,000 per class).
+    """
+
+    train_ratio: float = 5 / 6
+    val_ratio: float = 1 / 6
+    test_ratio: float = 0.0  # test set is the dataset's own split, never re-split
     random_seed: int = 42
-    
+
     def __post_init__(self):
         """Validate split ratios."""
         total = self.train_ratio + self.val_ratio + self.test_ratio
@@ -99,6 +113,25 @@ class DataSplitter:
         
         return train_subset, val_subset, test_subset
     
+    def _group_indices_by_label(
+        self,
+        dataset: Dataset,
+        indices: List[int]
+    ) -> Dict[int, List[int]]:
+        """Group sample indices by their integer label."""
+        label_to_indices: Dict[int, List[int]] = {}
+        for idx in indices:
+            try:
+                _, label = dataset[idx]
+                if isinstance(label, torch.Tensor):
+                    label = int(label.item())
+                else:
+                    label = int(label)
+                label_to_indices.setdefault(label, []).append(idx)
+            except Exception as e:  # pragma: no cover - defensive
+                logger.warning(f"Error getting label for index {idx}: {e}")
+        return label_to_indices
+
     def _stratified_split(
         self, 
         dataset: Dataset, 
@@ -106,85 +139,87 @@ class DataSplitter:
     ) -> List[int]:
         """
         Perform stratified splitting to maintain class distribution.
-        
+
+        The returned list is ordered as ``[train..., val..., test...]`` with
+        every class contributing its own quota to each block, so callers can
+        slice by ratio and still get a stratified result.
+
         Args:
             dataset: Dataset with labels
             indices: List of indices to split
             
         Returns:
-            Stratified shuffled indices
+            Stratified indices laid out train-first, then val, then test
         """
-        # Group indices by label
-        label_to_indices = {}
-        for idx in indices:
-            try:
-                _, label = dataset[idx]
-                if isinstance(label, torch.Tensor):
-                    label = label.item()
-                if label not in label_to_indices:
-                    label_to_indices[label] = []
-                label_to_indices[label].append(idx)
-            except Exception as e:
-                logger.warning(f"Error getting label for index {idx}: {e}")
-        
-        # Shuffle within each class
-        for label in label_to_indices:
-            np.random.shuffle(label_to_indices[label])
-        
-        # Distribute samples proportionally
+        label_to_indices = self._group_indices_by_label(dataset, indices)
+        rng = np.random.default_rng(self.config.random_seed)
+
         train_ratio = self.config.train_ratio
         val_ratio = self.config.val_ratio
 
-        stratified_indices = []
+        train_block: List[int] = []
+        val_block: List[int] = []
+        test_block: List[int] = []
 
-        for label, idx_list in label_to_indices.items():
+        for label in sorted(label_to_indices):
+            idx_list = list(label_to_indices[label])
+            rng.shuffle(idx_list)
+
             n = len(idx_list)
             n_train = int(n * train_ratio)
             n_val = int(n * val_ratio)
 
-            stratified_indices.extend(idx_list[:n_train])
-            stratified_indices.extend(idx_list[n_train:n_train + n_val])
-            stratified_indices.extend(idx_list[n_train + n_val:])
+            train_block.extend(idx_list[:n_train])
+            val_block.extend(idx_list[n_train:n_train + n_val])
+            test_block.extend(idx_list[n_train + n_val:])
 
-        # CRITICAL: shuffle the final stratified indices. Otherwise the
-        # caller would see all-class-1-then-all-class-2 ordering, and a
-        # plain ``indices[:n_train]`` slice would steal entire classes
-        # into either train or val.
-        np.random.shuffle(stratified_indices)
-        return stratified_indices
+        # Shuffle inside each block so the DataLoader sees a random order
+        # even though the blocks stay class-complete.
+        for block in (train_block, val_block, test_block):
+            rng.shuffle(block)
+
+        return train_block + val_block + test_block
     
     def create_split_from_existing(
         self,
         train_dataset: Dataset,
-        val_size: float = 0.1,
+        val_size: Optional[float] = None,
         stratify: bool = True
     ) -> Tuple[Subset, Subset]:
         """
         Create validation split from existing training dataset.
-        
+
         Args:
             train_dataset: Full training dataset
-            val_size: Fraction of data for validation
+            val_size: Fraction of data for validation. Defaults to
+                ``config.val_ratio`` (1/6 → 10,000 of 60,000).
             stratify: Whether to use stratified splitting
             
         Returns:
             Tuple of (train_subset, val_subset)
         """
         n_total = len(train_dataset)
-        n_val = int(n_total * val_size)
+        fraction = self.config.val_ratio if val_size is None else val_size
+        n_val = int(n_total * fraction)
         n_train = n_total - n_val
         
         indices = list(range(n_total))
-        
+
         if stratify:
-            indices = self._stratified_split(train_dataset, indices)
+            # ``_stratified_split`` lays the result out as
+            # [train..., val..., test...]. Slicing the *blocks* (instead of
+            # shuffling the whole list and cutting by index) is what keeps
+            # the class distribution intact in both subsets.
+            ordered = self._stratified_split(train_dataset, indices)
+            train_idx = ordered[:n_train]
+            val_idx = ordered[n_train:n_train + n_val]
         else:
-            np.random.seed(self.config.random_seed)
-            np.random.shuffle(indices)
-        
-        train_idx = indices[:n_train]
-        val_idx = indices[n_train:]
-        
+            rng = np.random.default_rng(self.config.random_seed)
+            shuffled = np.array(indices)
+            rng.shuffle(shuffled)
+            train_idx = shuffled[:n_train]
+            val_idx = shuffled[n_train:n_train + n_val]
+
         train_subset = Subset(train_dataset, train_idx)
         val_subset = Subset(train_dataset, val_idx)
         
@@ -340,18 +375,20 @@ class DataSplitManager:
 def split_pipeline(
     data_dir: str = "./data/processed",
     batch_size: int = 64,
-    val_ratio: float = 0.1,
+    val_ratio: float = DEFAULT_VAL_RATIO,
     num_workers: int = 0
 ) -> Tuple[DataLoader, DataLoader, DataLoader, SplitConfig]:
     """
     Complete data splitting pipeline.
-    
+
     Args:
         data_dir: Directory for dataset
         batch_size: Batch size for loaders
-        val_ratio: Validation split ratio
+        val_ratio: Validation split ratio, as a fraction of the 60,000-sample
+            training set. Defaults to ``1/6`` → 10,000 validation / 50,000
+            train, which keeps clean per-class counts (1,000 / 5,000).
         num_workers: Number of workers
-        
+
     Returns:
         Tuple of (train_loader, val_loader, test_loader, config)
     """
@@ -393,7 +430,7 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = split_pipeline(
         data_dir="./data/processed",
         batch_size=64,
-        val_ratio=0.1
+        val_ratio=DEFAULT_VAL_RATIO
     )
     
     print(f"\nTrain batches: {len(train_loader)}")

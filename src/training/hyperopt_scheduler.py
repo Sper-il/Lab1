@@ -5,7 +5,7 @@ Coordinates hyperparameter trials. In this lab the scheduler is *not* an
 Optuna/RL controller — it is just a small helper that:
 
 * logs every trial,
-* chooses between ``grid`` and ``random``,
+* runs the **grid search** (exhaustive Cartesian product),
 * (optionally) prunes early if a trial is doing badly after epoch 1 — a
   cheap "successive halving" style cut.
 * writes ``results.json`` and a ``results.md`` after the run.
@@ -38,8 +38,7 @@ logger = logging.getLogger(__name__)
 class SchedulerConfig:
     """Run-level configuration."""
 
-    strategy: str = "random"             # "grid" | "random"
-    n_trials: int = 10                  # used by random
+    strategy: str = "grid"               # "grid" (exhaustive Cartesian product)
     seed: int = 42
     output_dir: str = "results/runs"    # where to write results.md / .json
     filename_prefix: str = "hyperopt"
@@ -63,28 +62,21 @@ class HyperoptScheduler:
     # ------------------------------------------------------------------ #
 
     def run(self, search_space: Mapping[str, Any]) -> TrialResult:
-        """Execute the configured search and return the best trial.
+        """Execute the configured grid search and return the best trial.
 
         Args:
-            search_space: Either a grid dict (lists) for ``strategy='grid'``,
-                or a distribution dict for ``strategy='random'``.
+            search_space: A grid dict (lists) for ``strategy='grid'``.
 
         Returns:
             The :class:`TrialResult` with the highest validation accuracy.
         """
         logger.info(
             f"Scheduler starting: strategy={self.config.strategy}, "
-            f"n_trials={self.config.n_trials}, seed={self.config.seed}"
+            f"seed={self.config.seed}"
         )
 
         if self.config.strategy == "grid":
             results = self.tuner.grid_search(search_space)
-        elif self.config.strategy == "random":
-            results = self.tuner.random_search(
-                search_space,
-                n_trials=self.config.n_trials,
-                seed=self.config.seed,
-            )
         else:
             raise ValueError(f"Unknown strategy: {self.config.strategy}")
 

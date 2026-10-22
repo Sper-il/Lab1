@@ -20,12 +20,12 @@
 > | `src/models/model_factory.py` | ✅ Xong | 4 models registered |
 > | `src/models/model_selection.py` | ✅ Xong | `compare_architectures` |
 > | `src/models/__init__.py` | ✅ Xong | Export `BaselineMLP`, `ModelFactory`, … |
-> | `src/training/hyperparameter_tuning.py` | ✅ Xong | `HyperparameterTuner.grid/random_search` |
+> | `src/training/hyperparameter_tuning.py` | ✅ Xong | `HyperparameterTuner.grid_search` |
 > | `src/training/hyperopt_scheduler.py` | ✅ Xong | Writer → `hyperopt.{json,md,_best.json}` |
-> | `configs/hyperopt_config.yaml` | ✅ Xong | Grid + random search space |
-> | `run_experiments.py` | ✅ Xong | Entry point (`--smoke`, `--strategy grid/random`, `--n-trials`, `--epochs`) |
+> | `configs/hyperopt_config.yaml` | ✅ Xong | Grid search space (16 trials) |
+> | `run_experiments.py` | ✅ Xong | Entry point (`--smoke`, `--strategy grid`, `--epochs`) |
 > | Forward pass test 4 architectures | ✅ Xong | `(B,1,28,28) → (B,10)` |
-> | Grid search (8 trials × 3 epoch) | ✅ Xong | best val_acc = **90.53%** |
+> | Grid search (16 trials × 10 epoch, 4 architectures) | ✅ Xong | best val_acc = **92.33%** |
 > | Real training 3 epochs best config | ✅ Xong | val_acc = **90.12%** (saved `best_model.pt`) |
 > | Best model + best params identified | ✅ Xong | `simple_cnn` + adam + lr=0.001 |
 > | `docs/reports/nguoi1_models_report.md` | ✅ Xong | Báo cáo này |
@@ -60,62 +60,62 @@ Bốn kiến trúc được cài đặt và đăng ký qua `ModelFactory` (xem `
 
 ### 2.1 Search Space (`configs/hyperopt_config.yaml`)
 
-Tìm kiếm kết hợp 4 architecture với các hyperparameter:
+Tìm kiếm bằng **grid search** (tich Cartesian, tat dinh) tren 4 architecture:
 
-```yaml
-strategy: random          # mặc định; grid cũng implement
-n_trials: 12
-epochs_per_trial: 3
+`yaml
+strategy: grid
+epochs_per_trial: 10
+seed: 42
 
 grid_search:
-  model_name:    [simple_cnn, deep_mlp]
+  model_name:    [baseline_mlp, deep_mlp, simple_cnn, resnet_mini]
   learning_rate: [0.001, 0.0005]
   optimizer:     [adam, sgd]
-  epochs: 3
+  epochs: 10
+`
 
-random_search:
-  model_name:    [baseline_mlp, deep_mlp, simple_cnn, resnet_mini]
-  learning_rate: [0.0001, 0.001, 0.01]
-  batch_size:    [32, 64, 128]
-  weight_decay:  [0.0, 0.0001, 0.001]
-  optimizer:     [adam, sgd]
-  dropout:       [0.2, 0.3, 0.5]
-  epochs: 3
-```
+> **4 model x 2 learning rate x 2 optimizer = 16 trials x 10 epoch = 160 epoch.**
+> Grid **phu kin toan bo** khong gian tim kiem va **tat dinh** (chay lai cho dung ket qua cu) — khong co to hop nao bi bo sot nhu cac phuong phap lay mau ngau nhien.
 
-> Pilot chính thức dùng `grid_search` (8 trials) cho reproducibility & coverage đầy đủ các combination; `random_search` đã implement đầy đủ (`HyperparameterTuner.random_search` hỗ trợ `(low, high)`, `(low, high, 'log')`, `(low, high, 'int')`).
+### 2.2 Ket qua GRID SEARCH that — 16 trials x 10 epoch (CPU)
 
-### 2.2 Kết quả GRID SEARCH thật — 8 trials × 3 epoch (CPU)
+> Lech chay: `python run_experiments.py --batch-size 128`
+> Artifacts: `results/runs/hyperopt.json`, `hyperopt.md`, `hyperopt_best.json`
 
-> ⚙️ **Lệnh chạy:** `python run_experiments.py --strategy grid --batch-size 128`
-> ⏱️ **Thời gian:** ~19 phút (CPU) — hoàn thành 12:32 ngày 2026-10-12
-> 📁 **Artifacts:** `results/runs/hyperopt.json` (2,470 bytes), `hyperopt.md` (1,062 bytes), `hyperopt_best.json` (215 bytes)
-
-Bảng đầy đủ 8 trials (sort theo `val_acc` giảm dần):
+Bang day du 16 trials (sort theo `val_acc` giam dan):
 
 | Trial | Model        | LR     | Optimizer  | Train Acc | Val Acc   | Params   | s/epoch |
 |-------|--------------|--------|------------|-----------|-----------|----------|---------|
-| **1** ⭐ | **simple_cnn**  | **0.001** | **adam**   | **88.81%** | **90.53%** | 421,642 | 63.14 |
-| 3     | simple_cnn    | 0.0005 | adam       | 87.22%    | 88.97%    | 421,642  | 62.04  |
-| 5     | deep_mlp      | 0.001  | adam       | 84.91%    | 87.13%    | 118,650  | 31.26  |
-| 7     | deep_mlp      | 0.0005 | adam       | 84.76%    | 87.07%    | 118,650  | 27.24  |
-| 6     | deep_mlp      | 0.001  | sgd        | 80.49%    | 83.98%    | 118,650  | 25.40  |
-| 8     | deep_mlp      | 0.0005 | sgd        | 77.54%    | 82.25%    | 118,650  | 26.23  |
-| 2     | simple_cnn    | 0.001  | sgd        | 77.50%    | 80.83%    | 421,642  | 65.29  |
-| 4     | simple_cnn    | 0.0005 | sgd        | 74.31%    | 78.13%    | 421,642  | 62.51  |
+| **9**  | **simple_cnn**  | **0.001** | **adam**   | **92.79%** | **92.33%** | 421,642 | 75.20 |
+| 15    | resnet_mini  | 0.0005 | adam       | 95.60%    | 92.20%    | 174,970  | 218.63 |
+| 13    | resnet_mini  | 0.001  | adam       | 95.54%    | 91.78%    | 174,970  | 209.03 |
+| 11    | simple_cnn  | 0.0005 | adam       | 92.11%    | 91.23%    | 421,642  | 71.28 |
+| 14    | resnet_mini  | 0.001  | sgd        | 92.10%    | 90.12%    | 174,970  | 201.81 |
+| 3     | baseline_mlp| 0.0005 | adam       | 90.36%    | 89.88%    | 203,530  | 29.28  |
+| 1     | baseline_mlp| 0.001  | adam       | 90.63%    | 89.75%    | 203,530  | 29.15  |
+| 5     | deep_mlp    | 0.001  | adam       | 87.95%    | 89.33%    | 118,650  | 27.78  |
+| 16    | resnet_mini  | 0.0005 | sgd        | 89.91%    | 88.78%    | 174,970  | 218.03 |
+| 7     | deep_mlp    | 0.0005 | adam       | 87.82%    | 88.72%    | 118,650  | 27.68  |
+| 6     | deep_mlp    | 0.001  | sgd        | 84.74%    | 87.10%    | 118,650  | 26.79  |
+| 10    | simple_cnn  | 0.001  | sgd        | 85.23%    | 87.05%    | 421,642  | 67.44  |
+| 8     | deep_mlp    | 0.0005 | sgd        | 82.96%    | 86.23%    | 118,650  | 26.29  |
+| 2     | baseline_mlp| 0.001  | sgd        | 85.74%    | 86.08%    | 203,530  | 27.88  |
+| 12    | simple_cnn  | 0.0005 | sgd        | 83.56%    | 85.57%    | 421,642  | 68.26  |
+| 4     | baseline_mlp| 0.0005 | sgd        | 83.72%    | 84.37%    | 203,530  | 26.20  |
 
 ### 2.3 Nhận xét kết quả grid search
 
-* **Adam luôn tốt hơn SGD** ở cùng lr (~7–10% gap). Đúng kỳ vọng trên dataset nhỏ + ít epoch.
-* **simple_cnn + adam lr=1e-3** là tổ hợp tốt nhất (**90.53%**) — CNN tận dụng được cấu trúc không gian ảnh.
-* **deep_mlp + adam** đạt ~87% — không tệ cho fully-connected, nhưng không beat CNN.
-* **SGD ở lr=0.0005** dưới học rất chậm (78–82% chỉ sau 3 epoch).
-* **Tốc độ:** `deep_mlp` nhanh hơn `simple_cnn` ~2× (118k vs 421k params), nhưng accuracy thấp hơn 3–4%.
-* **Baseline & ResNet:** không nằm trong grid (giữ cho random search); pilot `compare_architectures` riêng đã verify:
-  - `baseline_mlp` (2 epoch, 1e-3): val_acc = **86.75%**
-  - `deep_mlp` (2 epoch, 1e-3): val_acc = **86.25%**
-  - `simple_cnn` (2 epoch, 1e-3): val_acc = **88.58%**
-  - `resnet_mini` (1 epoch, 1e-3): val_acc = 86.78% (epoch đầu)
+* **Adam luôn tốt hơn SGD** ở cùng lr — gap **2–6%** ở cả 4 kiến trúc. Đúng kỳ vọng trên dataset nhỏ + ít epoch.
+* **simple_cnn + adam lr=1e-3** là tổ hợp tốt nhất (**92.33%**) — CNN tận dụng được cấu trúc không gian ảnh.
+* **resnet_mini + adam lr=5e-4** đứng thứ nhì (**92.20%**) — gần bằng simple_cnn nhưng **train_acc = 95.60%**, cho thấy overfit rõ hơn (gap 3,4% so với 0,46% của simple_cnn).
+* **baseline_mlp / deep_mlp** đạt ~89–90% — không tệ cho fully-connected, nhưng không beat CNN.
+* **SGD ở lr=0.0005** dưới học rất chậm (84–89% sau 10 epoch).
+* **Tốc độ:** `baseline_mlp`/`deep_mlp` nhanh nhất (~27–29 s/epoch), `simple_cnn` ~75 s/epoch, `resnet_mini` ~218 s/epoch (chậm gấp **2,9×** simple_cnn) — không đáng đổi vì chỉ nhỉnh hơn 0,13% val_acc.
+* **Pilot `compare_architectures` riêng** (2 epoch, 1e-3) cũng xác nhận thứ tự kiến trúc:
+  - `simple_cnn` (2 epoch, 1e-3): val_acc = **89.48%** (421,642 params, 96,30 s/epoch)
+  - `resnet_mini` (2 epoch, 1e-3): val_acc = **88.63%** (174,970 params, 258,94 s/epoch)
+  - `baseline_mlp` (2 epoch, 1e-3): val_acc = **87.05%** (203,530 params, 30,92 s/epoch)
+  - `deep_mlp` (2 epoch, 1e-3): val_acc = **86.10%** (118,650 params, 33,36 s/epoch)
 
 ---
 
@@ -143,11 +143,11 @@ model = ModelFactory.create("simple_cnn")  # dropout=0.5 default
 
 ### 3.2 Expected Accuracy
 
-| Metric | Pilot (3 epoch) | Expected (10–15 epoch) |
-|--------|-----------------|------------------------|
-| Train accuracy | 88.79% | 92–94% |
-| Val accuracy   | **90.53%** | **91–93%** |
-| Val loss       | 0.27 | ~0.20 |
+| Metric | Pilot (3 epoch) | Grid thật (10 epoch) |
+|--------|-----------------|---------------------|
+| Train accuracy | 88.79% | **92.79%** |
+| Val accuracy   | **90.12%** | **92.33%** |
+| Val loss       | 0.27 | **0.21** |
 
 ### 3.3 Trained Model Best Checkpoint (verify integration)
 
@@ -186,10 +186,10 @@ epoch 3: train_loss=0.3173  train_acc=88.79%  val_loss=0.2689  val_acc=90.12% �
 | `src/models/architectures/advanced_cnn.py` | `BasicBlock`, `ResNetMini` (3 residual stages). |
 | `src/models/model_factory.py` | `ModelFactory` (registry + kwargs defaults). |
 | `src/models/model_selection.py` | `compare_architectures` cho quick architecture ranking. |
-| `src/training/hyperparameter_tuning.py` | `HyperparameterTuner`, `TrialResult`, grid/random search. |
+| `src/training/hyperparameter_tuning.py` | `HyperparameterTuner`, `TrialResult`, grid search. |
 | `src/training/hyperopt_scheduler.py` | `HyperoptScheduler`, `SchedulerConfig`, writer (`results/runs/hyperopt.{json,md}` + `_best.json`). |
-| `configs/hyperopt_config.yaml` | Search-space định nghĩa (grid + random). |
-| `run_experiments.py` | Entry point end-to-end của Người 1 (có `--smoke`, `--strategy`, `--n-trials`, `--epochs`). |
+| `configs/hyperopt_config.yaml` | Search-space định nghĩa (grid search). |
+| `run_experiments.py` | Entry point end-to-end của Người 1 (có `--smoke`, `--strategy`, `--epochs`). |
 
 ### Files sửa (bug fix)
 
@@ -209,9 +209,9 @@ epoch 3: train_loss=0.3173  train_acc=88.79%  val_loss=0.2689  val_acc=90.12% �
 
 ```
 results/runs/
-├── hyperopt.json          # 2,470 bytes — 8 trial raw rows (real)
-├── hyperopt.md            # 1,062 bytes — markdown table (real)
-├── hyperopt_best.json     # 215 bytes — best config
+├── hyperopt.json          # 4,985 bytes — 16 trial raw rows (real)
+├── hyperopt.md            # 1,730 bytes — markdown table (real)
+├── hyperopt_best.json     # 216 bytes — best config
 ├── class_distribution.png # EDA (Phase 1)
 ├── per_class_samples.png  # EDA (Phase 1)
 ├── pixel_histogram.png    # EDA (Phase 1)
@@ -229,8 +229,8 @@ models/checkpoints/
 |------|:-------:|
 | Smoke test 4 architectures (forward shape + loss giảm) | ✅ pass (64 samples × 5 steps) |
 | Forward `(B, 1, 28, 28) → (B, 10)` cho mọi model | ✅ pass |
-| Grid search với 8 trials × 3 epoch | ✅ pass (~19 phút CPU) |
-| Random search sampling (log/uniform/int/choice) | ✅ pass (unit) |
+| Grid search với 16 trials × 10 epoch × 4 architectures | ✅ pass (160 epoch CPU) |
+| Grid search exhaustive (không bỏ sót tổ hợp) | ✅ pass (unit) |
 | Real training 1 epoch trên FashionMNIST thật | ✅ pass (val_acc = 86.98% cho simple_cnn @ lr=1e-3) |
 | Real training 3 epochs trên FashionMNIST thật | ✅ pass (val_acc = **90.12%**) |
 | Save checkpoint `best_model.pt` | ✅ pass (1,690,359 bytes) |
@@ -242,11 +242,8 @@ models/checkpoints/
 # Forward + loss-decrease test
 python run_experiments.py --smoke
 
-# Full pilot (8 trials × 3 epoch, ~19 phút CPU)
-python run_experiments.py --strategy grid --batch-size 128
-
-# Random search (12 trials × 3 epoch, ~30 phút CPU)
-python run_experiments.py --strategy random --n-trials 12 --epochs 3 --batch-size 128
+# Full grid search (16 trials × 10 epoch, 160 epoch)
+python run_experiments.py --batch-size 128
 ```
 
 ---
@@ -276,4 +273,4 @@ python run_experiments.py --strategy random --n-trials 12 --epochs 3 --batch-siz
 ---
 
 **Người 1 — Network & Hyperparameter Experiment — HOÀN THÀNH 100% ✅**
-*(Trương Hoài Tú, 2026-10-12 — kết quả thật từ grid search 8 trials + real training 3 epochs)*
+*(Trương Hoài Tú, 2026-10-12 — kết quả thật từ grid search 16 trials × 10 epoch + real training)*

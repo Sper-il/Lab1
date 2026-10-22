@@ -7,6 +7,20 @@ import torch
 from pathlib import Path
 
 
+def _show_if_interactive():
+    """Chỉ gọi plt.show() khi chạy ở chế độ tương tác.
+
+    Khi backend là Agg (headless / CI) hoặc người dùng chỉ muốn lưu file,
+    plt.show() sẽ in UserWarning 'FigureCanvasAgg is non-interactive' và
+    chặn luồng chạy, nên bỏ qua trong các trường hợp đó.
+    """
+    backend = plt.get_backend().lower()
+    if 'agg' in backend or 'template' in backend or backend == '':
+        plt.close()
+        return
+    plt.show()
+
+
 class PredictionVisualizer:
     """Visualize model predictions with predicted vs actual labels."""
     
@@ -77,7 +91,7 @@ class PredictionVisualizer:
             plt.savefig(save_path, dpi=100, bbox_inches='tight')
             print(f"Predictions plot saved to {save_path}")
         
-        plt.show()
+        _show_if_interactive()
     
     def plot_confidence_distribution(self, probs, true_labels, save_path=None):
         """
@@ -106,4 +120,4 @@ class PredictionVisualizer:
             save_path.parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(save_path, dpi=100, bbox_inches='tight')
         
-        plt.show()
+        _show_if_interactive()

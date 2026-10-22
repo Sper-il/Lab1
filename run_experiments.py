@@ -9,7 +9,7 @@ What it runs (in order)
 2. Run :func:`src.models.model_selection.compare_architectures` with a
    fixed mini-config to pick the most promising architecture family.
 3. Run :class:`src.training.HyperparameterTuner` with the search space
-   from ``configs/hyperopt_config.yaml``.
+   from ``configs/hyperopt_config.yaml`` (exhaustive grid search).
 4. Print the best (model, hyperparameters) to stdout **and** save the
    per-trial results under ``results/runs/``.
 
@@ -21,17 +21,14 @@ Usage
 -----
 ::
 
-    # full search (default = 12 random trials, 3 epochs each)
+    # full search (default = 16 grid trials, 10 epochs each)
     python run_experiments.py
 
     # quick smoke test
     python run_experiments.py --smoke
 
-    # grid search (uses the grid_search: block in the yaml)
-    python run_experiments.py --strategy grid
-
-    # fewer trials
-    python run_experiments.py --n-trials 4 --epochs 1
+    # fewer epochs
+    python run_experiments.py --epochs 1
 """
 
 from __future__ import annotations
@@ -79,20 +76,20 @@ def _load_config(path: Path) -> dict:
 
 
 def _build_loaders(batch_size: int = 64):
-    """Use the existing Phase 1 split pipeline."""
-    from src.data.split import split_pipeline
+    """Use the existing Phase 1 split pipeline (50k train / 10k val / 10k test)."""
+    from src.data.split import DEFAULT_VAL_RATIO, split_pipeline
 
     train_loader, val_loader, test_loader, _ = split_pipeline(
         data_dir="./data/processed",
         batch_size=batch_size,
-        val_ratio=0.1,
+        val_ratio=DEFAULT_VAL_RATIO,
         num_workers=0,
     )
     return train_loader, val_loader, test_loader
 
 
 def _select_search_space(cfg: dict, strategy: str) -> dict:
-    block = "grid_search" if strategy == "grid" else "random_search"
+    block = "grid_search"
     if block not in cfg:
         raise KeyError(f"configs/hyperopt_config.yaml missing '{block}' block")
     return cfg[block]
@@ -151,10 +148,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Người 1 — Build Network + Hyperparameter Experiment")
     parser.add_argument("--config", default="configs/hyperopt_config.yaml",
                         help="Path to the hyperopt yaml config.")
-    parser.add_argument("--strategy", choices=["grid", "random"], default=None,
-                        help="Override the strategy in the yaml file.")
-    parser.add_argument("--n-trials", type=int, default=None,
-                        help="Override the number of random trials.")
+    parser.add_argument("--strategy", choices=["grid"], default="grid",
+                        help="Search strategy (only 'grid' is supported).")
     parser.add_argument("--epochs", type=int, default=None,
                         help="Override epochs_per_trial.")
     parser.add_argument("--batch-size", type=int, default=64,
@@ -180,18 +175,17 @@ def main() -> int:
     cfg_path = PROJECT_ROOT / args.config
     cfg = _load_config(cfg_path)
 
-    strategy = args.strategy or cfg.get("strategy", "random")
-    n_trials = args.n_trials or cfg.get("n_trials", 10)
-    epochs = args.epochs or cfg.get("epochs_per_trial", 3)
+    strategy = args.strategy or cfg.get("strategy", "grid")
+    epochs = args.epochs or cfg.get("epochs_per_trial", 10)
 
-    logger.info(f"Strategy={strategy}, n_trials={n_trials}, epochs_per_trial={epochs}")
+    logger.info(f"Strategy={strategy}, epochs_per_trial={epochs}")
 
     # 3. Build loaders ------------------------------------------------- #
     logger.info("Building data loaders ...")
     train_loader, val_loader, _ = _build_loaders(batch_size=args.batch_size)
 
     # 4. Architecture selection (quick) ------------------------------- #
-    if not args.skip_architecture_selection and strategy == "random":
+    if not args.skip_architecture_selection:
         logger.info("Step 4a — comparing architectures (fixed config, quick)...")
         arch_results = compare_architectures(
             model_names=cfg.get("models", ModelFactory.list_models()),
@@ -226,7 +220,6 @@ def main() -> int:
         tuner,
         SchedulerConfig(
             strategy=strategy,
-            n_trials=n_trials,
             seed=int(cfg.get("seed", 42)),
             output_dir=cfg.get("output", {}).get("dir", "results/runs"),
             filename_prefix=cfg.get("output", {}).get("filename_prefix", "hyperopt"),

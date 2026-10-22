@@ -43,7 +43,7 @@
 
 ### 2.6. Entry Point
 
-- [x] `src/evaluation/run_evalution.py` orchestration script.
+- [x] `src/evaluation/run_evaluation.py` orchestration script.
 
 ## 3. Kết quả đánh giá
 
@@ -82,7 +82,7 @@
 
 - `src/evaluation/model_io.py` (implement đầy đủ)
 - `src/evaluation/visualizer.py` (implement PredictionVisualizer)
-- `src/evaluation/run_evalution.py`
+- `src/evaluation/run_evaluation.py`
 
 ### Sửa
 
@@ -104,7 +104,7 @@
 ```powershell
 cd e:\lab1
 $env:PYTHONPATH = "."
-python src/evaluation/run_evalution.py
+python src/evaluation/run_evaluation.py
 ```
 
 ## 8. Tóm tắt

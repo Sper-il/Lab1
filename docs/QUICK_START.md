@@ -56,7 +56,7 @@ e:\lab1/
 ├── docs/                        # Additional documentation
 │   ├── README.md
 │   ├── CHANGELOG.md
-│   ├── ARCHITECTURE.md
+│   ├── architecture.md
 │   ├── EXPERIMENTS.md
 │   ├── audit_code.md
 │   ├── PHASE1_REPORT.md         # Phase 1 summary report

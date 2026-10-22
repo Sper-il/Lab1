@@ -79,7 +79,7 @@ class ModelFactory:
     def get_default_kwargs(cls, name: str) -> dict:
         """Return the default kwargs used in the search space.
 
-        Useful so that the random search stays comparable across trials —
+        Useful so that the grid search stays comparable across trials —
         changing dropout via the search overrides only the dropout field,
         everything else keeps its default value.
         """

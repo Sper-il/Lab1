@@ -179,7 +179,7 @@ def get_fashion_mnist_loaders(
     batch_size: int = 64,
     augment_train: bool = False,
     num_workers: int = 0,
-    val_split: float = 0.1
+    val_split: float = 1 / 6
 ) -> Tuple[DataLoader, DataLoader, DataLoader]:
     """
     Get train, validation, and test DataLoaders.

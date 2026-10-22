@@ -165,7 +165,7 @@ python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').g
 - `data/README.md` - Data folder guide
 - `docs/README.md` - Documentation index
 - `docs/AI_Usage.md` - AI assistance report
-- `docs/ARCHITECTURE.md` - System architecture
+- `docs/architecture.md` - System architecture
 - `docs/EXPERIMENTS.md` - Experiment log
 - `docs/PHASE1_REPORT.md` - Phase 1 summary (this file)
 - `docs/PHASE2_PLAN.md` - Phase 2 plan (3 people)
@@ -173,7 +173,7 @@ python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').g
 - `docs/audit_code.md` - Code audit report
 - `docs/CHANGELOG.md` - Version history
 
-### Empty Placeholders (8 files for Phase 2+)
+### Empty Placeholders (7 files for Phase 2+)
 - `src/models/baseline_model.py`
 - `src/models/model_selection.py`
 - `src/training/trainer.py`
@@ -181,7 +181,6 @@ python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').g
 - `src/evaluation/evaluator.py`
 - `src/evaluation/error_analysis.py`
 - `src/evaluation/model_io.py`
-- `src/evaluation/experiment_tracker.py`
 
 ### Configuration
 - `requirements.txt` - Python dependencies

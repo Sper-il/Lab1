@@ -6,7 +6,7 @@
 **Project Type:** Image Classification (Deep Learning)  
 **Core Functionality:** Implement a neural network to classify 10 categories of fashion items from the FashionMNIST dataset  
 **Target Users:** Students, Researchers, ML Engineers learning PyTorch  
-**Status:** Phase 1 Complete (Data Preparation)
+**Status:** Phase 1–3 Complete — Test Accuracy **92.10%** (target 90%)
 
 ## 2. Problem Statement
 
@@ -48,34 +48,51 @@ e:\lab1/
 │   │   ├── dataset.py      # FashionMNIST loader
 │   │   ├── eda.py          # Exploratory Data Analysis
 │   │   ├── preprocessing.py # Cleaning & preprocessing
-│   │   └── split.py        # Train/val/test splitting
+│   │   └── split.py        # Train/val/test split (50k/10k/10k, stratified)
 │   ├── models/             # Phase 2: Neural network architectures
 │   │   ├── __init__.py
-│   │   ├── baseline_model.py    (placeholder)
-│   │   └── model_selection.py   (placeholder)
-│   ├── training/           # Phase 2: Training loops
+│   │   ├── baseline_model.py    # BaselineMLP
+│   │   ├── model_factory.py     # Model registry (4 models)
+│   │   ├── model_selection.py   # compare_architectures
+│   │   └── architectures/       # DeepMLP, SimpleCNN, ResNetMini
+│   │       ├── __init__.py
+│   │       ├── mlp.py
+│   │       ├── simple_cnn.py
+│   │       └── advanced_cnn.py
+│   ├── training/           # Phase 2/3: Training loops + tuning
 │   │   ├── __init__.py
-│   │   ├── trainer.py              (placeholder)
-│   │   └── hyperparameter_tuning.py (placeholder)
-│   └── evaluation/         # Phase 2: Evaluation metrics
+│   │   ├── trainer.py              # Training loop (Người 2)
+│   │   ├── callbacks.py            # EarlyStopping + checkpoints (Người 2)
+│   │   ├── losses.py               # Loss factory (Người 2)
+│   │   ├── optimizers.py           # Optimizer factory (Người 2)
+│   │   ├── visualizer.py           # Loss/accuracy curves (Người 2)
+│   │   ├── hyperparameter_tuning.py # Grid search (Người 1)
+│   │   └── hyperopt_scheduler.py   # Search orchestration (Người 1)
+│   └── evaluation/         # Phase 3: Evaluation (Người 3)
 │       ├── __init__.py
-│       ├── evaluator.py         (placeholder)
-│       ├── error_analysis.py    (placeholder)
-│       ├── model_io.py          (placeholder)
-│       └── experiment_tracker.py (placeholder)
+│       ├── evaluator.py         # Accuracy, precision, recall, F1
+│       ├── confusion_matrix.py  # Confusion matrix heatmap
+│       ├── error_analysis.py    # Top confused pairs
+│       ├── model_io.py          # Save/load checkpoints
+│       ├── visualizer.py        # Predicted vs actual images
+│       └── run_evaluation.py    # Entry point
 ├── models/
-│   └── checkpoints/        # Saved model weights (.gitkeep)
+│   └── checkpoints/        # Saved weights: trained_model.pt, final_model.pt, ...
 ├── notebooks/              # Jupyter notebooks (empty)
-├── tests/                  # Unit tests (empty)
+├── tests/
+│   └── training/           # 27 unit tests (Người 2)
 ├── docs/                   # 📁 All project documentation
 │   ├── README.md           # Docs index
 │   ├── AI_Usage.md         # AI assistance report
 │   ├── audit_code.md       # Code audit report
 │   ├── CHANGELOG.md        # Version history
-│   ├── ARCHITECTURE.md     # System architecture
+│   ├── architecture.md     # System architecture
 │   ├── EXPERIMENTS.md      # Experiment log
 │   ├── PHASE1_REPORT.md    # Phase 1 summary report
 │   ├── PHASE2_PLAN.md      # Phase 2 plan (3 people, aligned với đề)
+│   ├── PROJECT_METHODOLOGY.md # Quy trình + giải thích chi tiết
+│   ├── TEAM_GUIDE.md       # Hướng dẫn chạy cho cả team
+│   ├── PRESENTATION_CHEATSHEET.md # Kịch bản thuyết trình
 │   ├── QUICK_START.md      # Quick start guide
 │   └── reports/            # Phase 2 reports
 │       ├── REPORT_TEMPLATE.md
@@ -83,19 +100,14 @@ e:\lab1/
 │       ├── nguoi2_training_report.md
 │       └── nguoi3_evaluation_report.md
 ├── configs/
-│   └── model_config.yaml   # Model configuration
+│   ├── model_config.yaml   # Training config (Người 2)
+│   └── hyperopt_config.yaml # Grid search space (Người 1)
 ├── results/
-│   └── runs/               # EDA plots & experiment outputs
-│       ├── class_distribution.png
-│       ├── sample_images.png
-│       ├── pixel_histogram.png
-│       └── per_class_samples.png
+│   └── runs/               # Plots, experiment outputs, dataset_info.md
 ├── logs/                   # Training logs
-│   ├── phase1_run.log
-│   ├── eda_visualization.log
-│   ├── final_run.log
-│   └── final_eda.log
-├── main.py                    # Main training script (Phase 2+)
+├── main.py                    # Entry point → run_training.run_training()
+├── run_training.py            # Training orchestration (Người 2)
+├── run_experiments.py          # Grid search entry point (Người 1)
 ├── requirements.txt           # Python dependencies
 ├── progress_status.md         # (root) Project status
 ├── README.md                  # (root) This file
@@ -107,11 +119,12 @@ e:\lab1/
 
 | Item | Description | Status |
 |------|-------------|--------|
-| Python Code | Complete implementation with modular structure | ⏳ In Progress |
-| Report | Brief analysis of model performance | ⏳ Phase 2+ |
-| Loss Graphs | Visualization of training progress | ⏳ Phase 2+ |
-| Image Displays | Predicted vs actual image samples | ⏳ Phase 2+ |
 | Data Pipeline | EDA, cleaning, preprocessing, splitting | ✅ Complete |
+| Python Code | Complete implementation with modular structure | ✅ Complete |
+| Report | Brief analysis of model performance | ✅ 3 reports + methodology |
+| Loss Graphs | Visualization of training progress | ✅ `results/runs/loss_curve.png` |
+| Image Displays | Predicted vs actual image samples | ✅ `results/runs/predictions.png` |
+| Model Save/Load | Checkpoint write/read + final model export | ✅ Complete |
 
 ## 6. Tech Stack
 
@@ -142,9 +155,9 @@ e:\lab1/
 9. **Evaluation** → Metrics computation and analysis
 10. **Error Analysis** → Investigate misclassifications
 
-### Phase 4: Deployment & Reporting ⏳ PENDING
-11. **Model Saving/Loading** → Export and deploy models
-12. **Experiment Management** → Track experiments and generate reports
+### Phase 4: Reporting ✅ MOSTLY COMPLETE
+11. **Model Saving/Loading** → Done (`trained_model.pt`, `final_model.pt`)
+12. **Reports** → Done (3 per-person reports + `PROJECT_METHODOLOGY.md`)
 
 ## 8. Getting Started
 
@@ -153,37 +166,59 @@ e:\lab1/
 pip install -r requirements.txt
 ```
 
-### Run Phase 1 Pipeline (Current)
+### Run Phase 1 (data, one-off)
 ```bash
-# Run end-to-end Phase 1 pipeline
-python run_phase1_pipeline.py
+# Test the data pipeline end-to-end (load → clean → preprocess → split)
+python -m src.data.preprocessing
 
-# Generate EDA visualizations
-python run_eda_visualization.py
+# Regenerate the 70k split PNGs (idempotent)
+python -m src.data.split --root data/processed --val-split 10000 --seed 42
+
+# Regenerate the 4 EDA plots into results/runs/
+python -c "from src.data.eda import EDAAnalyzer; EDAAnalyzer('data/processed').generate_full_report('results/runs')"
 ```
 
-### Run Training (Phase 2)
+### Run Training (Người 2)
 ```bash
-python main.py --epochs 10 --batch_size 64 --lr 0.001
+# Full pipeline with configs/model_config.yaml (15 epochs, CPU ~25 min)
+python main.py
+
+# Override individual values
+python main.py --epochs 10 --batch-size 128 --lr 0.001
 ```
 
-### Run Evaluation (Phase 3)
+### Run Grid Search (Người 1)
 ```bash
-$env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
+# Quick smoke test of all 4 architectures (~5s)
+python run_experiments.py --smoke
+
+# Full grid: 4 models x 2 lr x 2 optimizers = 16 trials x 10 epochs (~4.5 h CPU)
+python run_experiments.py --batch-size 128
 ```
 
-## 9. Current Results (Phase 1)
+### Run Evaluation (Người 3)
+```bash
+$env:PYTHONPATH = "."; python src/evaluation/run_evaluation.py
+```
+
+### Run Tests
+```bash
+$env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
+```
+
+## 9. Data Summary (Phase 1)
 
 | Metric | Value |
 |--------|-------|
 | Total training samples | 60,000 |
 | Total test samples | 10,000 |
-| Train/Val/Test split | 54,000 / 6,000 / 10,000 |
+| Train/Val/Test split | 50,000 / 10,000 / 10,000 |
+| Per-class split | 5,000 train / 1,000 val / 1,000 test |
 | Image shape | (1, 28, 28) |
 | Mean / Std | 0.2860 / 0.3530 |
-| Class balance | Perfect (6,000 each) |
+| Class balance | Perfect (6,000 each in the raw training set) |
 | Data quality | 100% valid (60,000/60,000) |
-| Batch size | 64 |
+| Split strategy | Stratified, `seed=42`, `val_ratio=1/6` |
 
 ### EDA Visualizations
 - `results/runs/class_distribution.png` - Class distribution
@@ -191,7 +226,20 @@ $env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
 - `results/runs/pixel_histogram.png` - Pixel intensity distribution
 - `results/runs/per_class_samples.png` - One sample per class
 
-## 11. Current Results
+## 10. Model Results (Phase 2 + 3)
+
+### Best configuration (from grid search, 16 trials × 10 epochs)
+
+| Parameter | Value |
+|-----------|-------|
+| Architecture | `simple_cnn` (421,642 params) |
+| Optimizer | Adam |
+| Learning rate | 0.001 |
+| Batch size | 128 |
+| Dropout | 0.5 |
+| Best grid val accuracy | 92.33% |
+
+### Final training run (15 epochs, CPU)
 
 | Metric | Value |
 |--------|-------|
@@ -199,9 +247,9 @@ $env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
 | Precision (macro) | 92.11% |
 | Recall (macro) | 92.10% |
 | F1-Score (macro) | 92.09% |
-| Validation Accuracy | 92.88% (best), 93.03% (last) |
-| Best Epoch | 11/15 |
-| Training Time | ~60s/epoch (CPU) |
+| Validation Accuracy | 92.88% (best, epoch 11), 93.03% (last, epoch 15) |
+| Best Epoch | 11/15 (by `val_loss`) |
+| Training Time | ~75 s/epoch (CPU) |
 
 ### Top Confused Classes
 | True Class | → Predicted | Count |
@@ -212,10 +260,16 @@ $env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
 | Coat | Pullover | 63 |
 | Coat | Shirt | 55 |
 
+> These numbers come from the last full run. See `docs/reports/` for the
+> per-person reports and `results/runs/` for the generated artifacts.
+
 ### Artifacts
 - **Training curves:** `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`
+- **Grid search:** `results/runs/hyperopt.md`, `hyperopt.json`, `hyperopt_best.json`
+- **Architecture comparison:** `results/runs/architecture_selection.md`
 - **Confusion matrix:** `results/runs/confusion_matrix.png`
 - **Predictions plot:** `results/runs/predictions.png`
+- **Dataset info:** `results/runs/dataset_info.md`
 - **Final model:** `models/checkpoints/final_model.pt`
 
 ## 11. Documentation
@@ -238,10 +292,13 @@ $env:PYTHONPATH = "."; python src/evaluation/run_evalution.py
 |------|-------------|
 | [docs/README.md](docs/README.md) | Documentation index |
 | [docs/AI_Usage.md](docs/AI_Usage.md) | AI assistance report |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture |
+| [docs/architecture.md](docs/architecture.md) | System architecture |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | Experiment log |
 | [docs/PHASE1_REPORT.md](docs/PHASE1_REPORT.md) | Phase 1 summary |
 | [docs/PHASE2_PLAN.md](docs/PHASE2_PLAN.md) | Phase 2 plan (3 people, aligned với đề) |
+| [docs/PROJECT_METHODOLOGY.md](docs/PROJECT_METHODOLOGY.md) | Quy trình thực hiện + giải thích kỹ thuật |
+| [docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md) | Hướng dẫn chạy cho cả team |
+| [docs/PRESENTATION_CHEATSHEET.md](docs/PRESENTATION_CHEATSHEET.md) | Kịch bản thuyết trình |
 | [docs/QUICK_START.md](docs/QUICK_START.md) | Quick start guide |
 | [docs/audit_code.md](docs/audit_code.md) | Code audit report |
 | [docs/CHANGELOG.md](docs/CHANGELOG.md) | Version history |

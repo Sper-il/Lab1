@@ -1,5 +1,7 @@
 # run_evaluation.py
 
+import sys
+
 import torch
 from src.data.split import DataSplitManager
 from src.models.model_factory import ModelFactory
@@ -8,8 +10,17 @@ from src.evaluation.model_io import ModelIO
 from src.evaluation.visualizer import PredictionVisualizer
 from src.evaluation.confusion_matrix import ConfusionMatrixPlotter
 from src.evaluation.error_analysis import ErrorAnalyzer
+from src.evaluation.metrics_report import save_metrics_report
 
 def main():
+    # Windows console mặc định dùng cp1252 -> print tiếng Việt sẽ crash.
+    # Reconfigure stdout sang utf-8 (fallback về replace nếu console không hỗ trợ).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f"Using device: {device}")
     
@@ -35,8 +46,17 @@ def main():
     
     # 5. Phân tích lỗi (Error Analysis)
     error_analyzer = ErrorAnalyzer()
-    error_analyzer.analyze_common_confusions(labels, preds, top_k=5)
-    
+    sorted_confusions = error_analyzer.analyze_common_confusions(labels, preds, top_k=5)
+
+    # 5b. Ghi báo cáo metrics ra file để mở ra đối chiếu được
+    report_path = save_metrics_report(
+        metrics=metrics,
+        confusions=sorted_confusions,
+        output_dir='results/runs',
+        top_k=5,
+    )
+    print(f"\nMetrics report saved to: {report_path}")
+
     # Lấy một batch ảnh từ test loader để vẽ hiển thị so sánh
     data_iter = iter(test_loader)
     images, target_labels = next(data_iter)

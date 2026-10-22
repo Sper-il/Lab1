@@ -293,11 +293,6 @@ class HyperparameterTuner:
         # → 2*2*... combinations
         pass
     
-    def random_search(self, param_distributions, n_trials=10):
-        """Random search - thử random combinations."""
-        # Faster than grid search
-        pass
-    
     def train_with_params(self, params):
         """Train model với specific hyperparameters, return val accuracy."""
         # 1. Create model
@@ -1141,7 +1136,7 @@ results/runs/                          # Outputs
 - [ ] `src/training/hyperparameter_tuning.py` tạo xong
 - [ ] `configs/hyperopt_config.yaml` tạo xong
 - [ ] Forward pass test passed với 4 architectures
-- [ ] Grid/random search test passed
+- [ ] Grid search test passed (16 trials × 4 architectures)
 - [ ] **Best model + best params identified**
 - [ ] `docs/reports/nguoi1_models_report.md` viết xong
 

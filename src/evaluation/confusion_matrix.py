@@ -5,6 +5,8 @@ import numpy as np
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 
+from .visualizer import _show_if_interactive
+
 class ConfusionMatrixPlotter:
     """Class chuyên biệt để tính toán và visualize Confusion Matrix."""
     
@@ -46,4 +48,4 @@ class ConfusionMatrixPlotter:
             plt.savefig(save_path, dpi=100, bbox_inches='tight')
             print(f"Confusion matrix saved to {save_path}")
             
-        plt.show()
+        _show_if_interactive()

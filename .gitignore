@@ -96,6 +96,7 @@ results/runs/*
 !results/runs/training_history.json
 !results/runs/loss_curve.png
 !results/runs/accuracy_curve.png
+!results/runs/test_metrics.md
 logs/
 
 # OS

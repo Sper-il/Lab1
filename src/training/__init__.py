@@ -5,7 +5,7 @@ Training loops, optimizers, and training utilities.
 
 This package contains (Người 1):
 
-* :mod:`.hyperparameter_tuning` – ``HyperparameterTuner`` for grid/random search
+* :mod:`.hyperparameter_tuning` – ``HyperparameterTuner`` for grid search
 * :mod:`.hyperopt_scheduler`   – ``HyperoptScheduler`` orchestrator + reporter
 
 Other Người 2 files (trainer.py, callbacks.py, ...) / will live in this

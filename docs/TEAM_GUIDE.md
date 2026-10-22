@@ -106,20 +106,20 @@ Kỳ vọng:
 [smoke] resnet_mini:  shape_ok=True, loss ...
 ```
 
-### 4.2. Grid search nhanh (~3 phút)
+### 4.2. Grid search nhanh (smoke, ~3 phút)
 
 ```powershell
-python run_experiments.py --strategy grid --n-trials 8 --epochs 3 --batch-size 128
+python run_experiments.py --epochs 3 --batch-size 128
 ```
 
-Kỳ vọng output cuối:
+Kỳ vọng output cuối (ví dụ từ run `--epochs 3`):
 ```
 ========================================================================
 NGƯỜI 1 SUMMARY — Best (model, hyperparams)
 ========================================================================
 trial_id     : 1
-val_acc      : 89.97%
-train_acc    : 88.44%
+val_acc      : 90.53%
+train_acc    : 88.81%
 params       :
   - model_name: simple_cnn
   - learning_rate: 0.001
@@ -133,13 +133,17 @@ Artifacts tự động ghi vào:
 - `results/runs/architecture_selection.md` — so sánh architectures
 - `results/runs/best_config.json` — best config tìm được
 
-### 4.3. Random search đầy đủ (~10-15 phút)
+### 4.3. Grid search đầy đủ — 16 trials × 10 epoch (~4,5 giờ CPU)
 
 ```powershell
-python run_experiments.py --strategy random --n-trials 12 --epochs 3
+python run_experiments.py --batch-size 128
 ```
 
+Grid search **phủ kín** toân bộ: 4 kiến trúc × 2 learning rate × 2 optimizer = 16 trials × 10 epoch = 160 epoch. Tất định, không bỏ sót tổ hợp nào.
+
 Config ở `configs/hyperopt_config.yaml` — muốn đổi search space thì sửa file này.
+
+> **Kết quả chạy thật (2026-10-22):** best = **simple_cnn + adam + lr=0.001 + 10 epoch → val_acc 92.33%** (trial 9). Runner-up: `resnet_mini + adam + lr=0.0005 → 92.20%`. Chi tiết: `results/runs/hyperopt.md`.
 
 ---
 
@@ -258,7 +262,7 @@ Get-Content _e2e_run.log -Tail 30   # xem 30 dòng cuối
 | `ModuleNotFoundError: No module named 'src'` | Chưa `cd` đúng thư mục gốc | `cd C:\Users\hoait\Downloads\Lab1` |
 | `'ResNetMini' object has no attribute 'expansion'` | Bug cũ đã fix ở `src/models/architectures/advanced_cnn.py` | Pull code mới nhất |
 | `pin_memory` warning | CPU only | Bỏ qua warning, không ảnh hưởng |
-| Loss = 89.97% ở trial 1 nhưng giảm ở trial 2 | Random — bình thường | Dùng `--n-trials` lớn hơn |
+| Loss = 89.97% ở trial 1 nhưng giảm ở trial 2 | Grid cũng tất định — không phải lỗi | Kiểm tra `grid_search` đã expand đúng product |
 | PowerShell không activate được venv | Execution policy | `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` |
 | `data/processed` rỗng | Chưa generate split | Chạy bước 3 ở trên |
 
@@ -288,4 +292,4 @@ git push origin feat/<ten-minh>-<viec-dang-lam>
 - Cấu hình hyperopt: `configs/hyperopt_config.yaml`
 - Quick start cũ: `docs/QUICK_START.md`
 
-> Cập nhật lần cuối: **2026-10-12** — pipeline Người 1 verified end-to-end với val_acc=89.97%.
+> Cập nhật lần cuối: **2026-10-22** — grid search 16 trials × 10 epoch chạy thật, best val_acc = **92.33%** (simple_cnn + adam + lr=0.001).

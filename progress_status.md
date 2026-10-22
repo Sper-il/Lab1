@@ -82,14 +82,14 @@
 ### ✅ Step 4: Data Split
 - **File:** `src/data/split.py` → `DataSplitter`, `DataSplitManager`
 - **Configuration:**
-  - Train ratio: 0.9 (90%)
-  - Val ratio: 0.1 (10%)
+  - Train ratio: `5/6` (~83.3%)
+  - Val ratio: `1/6` (~16.7%)
   - Random seed: 42 (reproducibility)
   - Stratified split: enabled (preserves class distribution)
 - **Result:**
-  - Train: 54,000 samples (844 batches @ batch_size=64)
-  - Val: 6,000 samples (94 batches)
-  - Test: 10,000 samples (157 batches)
+  - Train: 50,000 samples (5,000/class)
+  - Val: 10,000 samples (1,000/class)
+  - Test: 10,000 samples (1,000/class, dataset's own official split)
 - **Saved Info:** `data/splits/split_info.txt`
 
 ---
@@ -116,17 +116,17 @@
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
-│  Training & Evaluation (Phase 2 - Người 2/3 + Phase 3) ⏳  │
+│  Training & Evaluation (Phase 2 - Người 2/3 + Phase 3) ✅   │
 │  ┌────────┐  ┌──────────┐  ┌──────────┐  ┌─────────────┐   │
 │  │ Train  │→ │Evaluate  │→ │  Errors  │→ │ Save/Load   │  │
-│  │  ⏳    │  │   ⏳     │  │   ⏳     │  │    ⏳       │  │
+│  │   ✅   │  │    ✅    │  │    ✅    │  │     ✅      │  │
 │  └────────┘  └──────────┘  └──────────┘  └─────────────┘   │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
-│               Reporting & Experiments (Phase 4) ⏳            │
+│               Reporting & Experiments (Phase 4) ✅           │
 │  ┌─────────────────┐  ┌──────────────────────────────┐      │
-│  │ Experiment Track│→ │       Final Report            │      │
+│  │ Experiment Log  │→ │       Final Report            │      │
 │  └─────────────────┘  └──────────────────────────────┘      │
 └──────────────────────────────────────────────────────────────┘
 ```
@@ -157,7 +157,6 @@
 | Model I/O | `src/evaluation/model_io.py` | ✅ Complete | **Người 3** |
 | Confusion Matrix | `src/evaluation/confusion_matrix.py` | ✅ Complete | **Người 3** |
 | Prediction Visualizer | `src/evaluation/visualizer.py` | ✅ Complete | **Người 3** |
-| Experiment Tracker | `src/evaluation/experiment_tracker.py` | ⏳ Empty | **Người 3** |
 
 ---
 
@@ -173,7 +172,7 @@
   - [x] Generate predictions plot và confusion matrix.
   - [x] Save final model với metrics.
 - **Status** — Describe ✅ / Implement ✅ / Run ✅ / Commit ✅
-- **Last run** — `python src/evaluation/run_evalution.py`, test_acc=92.10%, precision=92.11%, recall=92.10%, f1=92.09%.
+- **Last run** — `python src/evaluation/run_evaluation.py`, test_acc=92.10%, precision=92.11%, recall=92.10%, f1=92.09%.
 
 ## Module Log
 
@@ -193,19 +192,23 @@
 | 2026-10-11 22:30 | EDA | Created eda.py, ran visualization | ✅ |
 | 2026-10-11 22:31 | Cleaning | Created DataCleaner, validated 60000/60000 samples | ✅ |
 | 2026-10-11 22:31 | Preprocessing | Created DataPreprocessor, computed mean=0.286, std=0.354 | ✅ |
-| 2026-10-11 22:31 | Data Split | Created DataSplitManager, split into 54000/6000/10000 | ✅ |
+| 2026-10-11 22:31 | Data Split | Created DataSplitManager, split into 50000/10000/10000 | ✅ |
 | 2026-10-11 22:32 | Pipeline Test | Ran end-to-end Phase 1 pipeline | ✅ |
 | 2026-10-11 22:35 | Re-run Phase 1 | Re-ran pipeline for final verification | ✅ |
 | 2026-10-11 22:36 | Re-run EDA | Re-generated all EDA plots | ✅ |
 | 2026-10-12 07:01 | Data Layout | Moved 70k split PNGs from data/raw/ → data/processed/ (proper input vs output separation); updated split.py default + data/README.md | ✅ |
 | 2026-10-12 08:xx | Người 1 | BaselineMLP, DeepMLP, SimpleCNN, ResNetMini implemented via ModelFactory | ✅ |
-| 2026-10-12 09:xx | Người 1 | HyperparameterTuner + HyperoptScheduler with grid/random search | ✅ |
+| 2026-10-12 09:xx | Người 1 | HyperparameterTuner + HyperoptScheduler with grid search | ✅ |
 | 2026-10-12 09:xx | Người 1 | Bug fix: split.py import path + stratified shuffle | ✅ |
 | 2026-10-12 09:57 | Người 1 | Full grid search 8 trials × 3 epochs → best val_acc=89.97% (simple_cnn + adam + lr=0.001) | ✅ |
 | 2026-10-12 10:xx | Người 1 | End-to-end pipeline verified + `docs/TEAM_GUIDE.md` + `nguoi1_models_report.md` | ✅ |
 | 2026-10-12 11:10 | Người 1 | **Phase 2 Người 1 — HOÀN THÀNH 100% (16/16 tasks)** | ✅ |
 | 2026-10-12 12:32 | Người 1 | **Re-run grid search 8 trials × 3 epoch thật** → best val_acc=90.53% (simple_cnn + adam + lr=0.001) | ✅ |
 | 2026-10-12 13:15 | Người 1 | **Real training 3 epoch thật với best config** → val_acc=90.12% → saved `models/checkpoints/best_model.pt` (1.69MB) | ✅ |
+| 2026-10-21 21:5x | Người 1 | **Bỏ random search** khỏi project; grid search mở rộng lên **16 trials × 10 epoch × 4 kiến trúc** (tổng 160 epoch) — tất định, phủ kín | ✅ |
+| 2026-10-22 02:04 | Người 1 | **Chạy thật grid search 16 trials × 10 epoch** (~4,5 giờ CPU) → best val_acc=**92.33%** (simple_cnn + adam + lr=0.001, trial 9); runner #2 resnet_mini + adam + lr=0.0005 (92.20%). Artifacts `results/runs/hyperopt.{json,md,_best.json}` đã cập nhật; docs đã đồng bộ | ✅ |
+| 2026-10-22 | Data Split | **Đổi split từ 54k/6k → 50k/10k/10k** (`val_ratio=1/6`). Đồng thời fix bug phân tầng: `_stratified_split` gộp rồi xáo trộn toàn cục khiến `create_split_from_existing` cắt đại trà ⇒ lệch class (val 947–1.040/lớp). Sau fix: đúng **5.000 / 1.000 / 1.000** mỗi lớp. `split_pipeline`, `run_training.py`, `run_experiments.py` dùng chung `DEFAULT_VAL_RATIO`. 27/27 tests pass | ✅ |
+| 2026-10-22 | Documentation | Đồng bộ toàn bộ docs theo split 50k/10k/10k và trạng thái Phase 2–3 hoàn tất | ✅ |
 
 ---
 
@@ -225,7 +228,7 @@
 [2026-10-11 22:30] Decision: Use modular folder structure | Reasoning: Separation of concerns, easier to test and maintain
 [2026-10-11 22:30] Decision: Use stratified split | Reasoning: Preserve class distribution in train/val/test
 [2026-10-11 22:30] Decision: Random seed = 42 | Reasoning: Reproducibility across runs
-[2026-10-11 22:30] Decision: Train/Val/Test = 0.9/0.1/1.0 | Reasoning: Standard split, FashionMNIST has separate test set
+[2026-10-11 22:30] Decision: Train/Val/Test = 5/6 : 1/6 : separate test set | Reasoning: 50k/10k/10k gives clean per-class counts (5,000/1,000/1,000 out of 6,000)
 [2026-10-11 22:30] Decision: Normalize to mean=0.286, std=0.353 | Reasoning: Standard FashionMNIST values, faster convergence
 [2026-10-11 22:30] Decision: Batch size = 64 | Reasoning: Standard choice, good balance of speed and accuracy
 [2026-10-11 22:30] Decision: CPU only (CUDA unavailable) | Reasoning: PyTorch CPU mode, acceptable for FashionMNIST
@@ -277,9 +280,9 @@
   - [x] Multiple architectures — DeepMLP, SimpleCNN, ResNetMini (`architectures/*.py`)
   - [x] ModelFactory registry (4 models)
   - [x] compare_architectures / model_selection
-  - [x] Hyperparameter tuning — Grid search 8 trials + Random search
-  - [x] Best model + best params identified (simple_cnn + adam + lr=0.001 → 89.97%)
-  - [x] `run_experiments.py` entry point (`--smoke`, `--strategy`, `--n-trials`, `--epochs`)
+  - [x] Hyperparameter tuning — Grid search 16 trials × 10 epoch (4 architectures)
+  - [x] Best model + best params identified (simple_cnn + adam + lr=0.001 → 92.33% grid 16×10)
+  - [x] `run_experiments.py` entry point (`--smoke`, `--strategy`, `--epochs`)
   - [x] Bug fix: split.py import path + stratified shuffle
   - [x] `docs/TEAM_GUIDE.md` — hướng dẫn cho cả team
   - [x] `docs/reports/nguoi1_models_report.md` — báo cáo chi tiết
@@ -297,7 +300,7 @@
   - [x] Confusion matrix → `src/evaluation/confusion_matrix.py`
   - [x] Error analysis → `src/evaluation/error_analysis.py`
   - [x] Predicted vs actual images → `src/evaluation/visualizer.py`
-  - [x] `src/evaluation/run_evalution.py` entry point
+  - [x] `src/evaluation/run_evaluation.py` entry point
 - [ ] **Final report & visualization** ⏳ PENDING
 
 ---
@@ -320,11 +323,11 @@
 - **Corrupt images:** None
 
 ### Data Splits
-| Split | Samples | Batches (bs=64) |
-|-------|---------|------------------|
-| Train | 54,000 | 844 |
-| Val   | 6,000  | 94  |
-| Test  | 10,000 | 157 |
+| Split | Samples | Per class |
+|-------|---------|-----------|
+| Train | 50,000 | 5,000 |
+| Val   | 10,000 | 1,000 |
+| Test  | 10,000 | 1,000 |
 
 ---
 

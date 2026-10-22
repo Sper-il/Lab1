@@ -2,10 +2,10 @@ FashionMNIST Data Split Information
 ========================================
 
 Random Seed: 42
-Train Ratio: 0.9
-Val Ratio: 0.1
+Train Ratio: 0.8333333333333334
+Val Ratio: 0.16666666666666666
 Test Ratio: 0.0
 
-Train Size: 54000
-Val Size: 6000
+Train Size: 50000
+Val Size: 10000
 Test Size: 10000

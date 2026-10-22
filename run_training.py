@@ -14,7 +14,7 @@ import numpy as np
 import torch
 import yaml
 
-from src.data.split import split_pipeline
+from src.data.split import DEFAULT_VAL_RATIO, split_pipeline
 from src.models.model_factory import ModelFactory
 from src.training.callbacks import EarlyStopping
 from src.training.losses import create_loss
@@ -177,7 +177,7 @@ def run_training(config: Mapping[str, Any]) -> tuple[torch.nn.Module, dict[str, 
     train_loader, val_loader, _test_loader, _split_config = split_pipeline(
         data_dir=effective_config.get("data_dir", "data/processed"),
         batch_size=training["batch_size"],
-        val_ratio=0.1,
+        val_ratio=DEFAULT_VAL_RATIO,
         num_workers=training["num_workers"],
     )
     model = ModelFactory.create(

@@ -1,7 +1,7 @@
 """
 Hyperparameter Tuning
 =====================
-Grid and random search over architectures + training hyperparameters for
+Grid search over architectures + training hyperparameters for
 FashionMNIST.
 
 What this module does (per ``docs/PHASE2_PLAN.md``)
@@ -9,7 +9,7 @@ What this module does (per ``docs/PHASE2_PLAN.md``)
 * Train a model from :class:`src.models.ModelFactory` for a small number
   of epochs under a given hyperparameter combination.
 * Score it on the validation set.
-* Iterate over a grid or random distribution of combinations.
+* Iterate over the full Cartesian product of the search space.
 * Track every trial's parameters + metrics.
 * Optionally use a :class:`HyperoptScheduler` to prune bad trials early.
 
@@ -30,9 +30,7 @@ from __future__ import annotations
 import itertools
 import json
 import logging
-import random
 import time
-from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -137,42 +135,6 @@ def _evaluate(model: nn.Module, loader: DataLoader, device: torch.device) -> tup
     return total_loss / max(n, 1), 100.0 * correct / max(n, 1)
 
 
-def _sample_random(distribution: Mapping[str, Any], rng: random.Random) -> dict:
-    """Sample one config from a distribution spec.
-
-    The distribution may mix scalars — these are passed through unchanged
-    — and tuples/lists:
-
-    * plain list/tuple         → uniform choice among the entries
-    * ``(low, high, 'log')``   → log-uniform real in ``[low, high]``
-    * ``(low, high, 'int')``   → uniform int in ``[low, high]`` (inclusive)
-    * ``(low, high)``          → uniform real in ``[low, high]``
-    """
-    out = {}
-    for key, spec in distribution.items():
-        if isinstance(spec, (list, tuple)):
-            if not isinstance(spec, tuple) or len(spec) < 2:
-                # plain list → uniform choice
-                out[key] = rng.choice(list(spec))
-                continue
-
-            low, high = spec[0], spec[1]
-            kind = spec[2] if len(spec) >= 3 else "float"
-
-            if kind == "log":
-                log_low, log_high = (low, high) if low > 0 else (1e-6, high)
-                val = 10 ** rng.uniform(log_low, log_high) if low > 0 else 10 ** rng.uniform(-6, log_high)
-                out[key] = float(val)
-            elif kind == "int":
-                out[key] = rng.randint(low, high)
-            else:
-                out[key] = rng.uniform(low, high)
-        else:
-            # Scalar constant (int, float, str, bool, None, ...) → use as-is.
-            out[key] = spec
-    return out
-
-
 # ---------------------------------------------------------------------------
 # Main tuner
 # ---------------------------------------------------------------------------
@@ -211,7 +173,7 @@ class HyperparameterTuner:
         self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # ------------------------------------------------------------------ #
-    # Public search strategies
+    # Public search strategy
     # ------------------------------------------------------------------ #
 
     def grid_search(self, param_grid: Mapping[str, Sequence[Any]]) -> list[TrialResult]:
@@ -221,6 +183,10 @@ class HyperparameterTuner:
         not present, ``self.to_tune`` (first item) is taken as the fixed
         architecture. Any scalar value (str/int/float) is treated as a
         constant — this lets callers mix fixed fields into the same dict.
+
+        The search is **exhaustive**: every cell of the product is
+        evaluated, so the result is deterministic and no promising
+        configuration can be missed.
         """
         keys = list(param_grid.keys())
         raw_values = [param_grid[k] for k in keys]
@@ -235,30 +201,6 @@ class HyperparameterTuner:
 
         logger.info(f"Grid search: {len(expanded)} trials across {len(keys)} params")
         return self._run_all(expanded)
-
-    def random_search(
-        self,
-        param_distributions: Mapping[str, Any],
-        n_trials: int = 10,
-        seed: int = 42,
-    ) -> list[TrialResult]:
-        """Random search over distributions.
-
-        ``param_distributions`` keys must match ``train_with_params``'s
-        kwargs. If ``model_name`` is missing, a random architecture from
-        ``self.to_tune`` is chosen per trial.
-        """
-        rng = random.Random(seed)
-        dist = dict(param_distributions)
-        configs = []
-        for _ in range(n_trials):
-            cfg = _sample_random(dist, rng)
-            if "model_name" not in cfg:
-                cfg["model_name"] = rng.choice(self.to_tune)
-            configs.append(cfg)
-
-        logger.info(f"Random search: {n_trials} trials (seed={seed})")
-        return self._run_all(configs)
 
     # ------------------------------------------------------------------ #
     # Single-trial training
@@ -317,7 +259,7 @@ class HyperparameterTuner:
         final = history[-1]
         return TrialResult(
             trial_id=trial_id if trial_id > 0 else 0,
-            params=dict(params),
+            params=self._effective_params(params, model_name, model_kwargs, lr, wd, epochs),
             train_acc=final["train_acc"],
             val_acc=final["val_acc"],
             train_loss=final["train_loss"],
@@ -326,6 +268,40 @@ class HyperparameterTuner:
             n_params=n_params,
             history=history,
         )
+
+    def _effective_params(
+        self,
+        params: Mapping[str, Any],
+        model_name: str,
+        model_kwargs: Mapping[str, Any],
+        lr: float,
+        wd: float,
+        epochs: int,
+    ) -> dict:
+        """Return the params that were *actually* used by this trial.
+
+        The grid only sweeps a subset of hyperparameters. Everything else
+        still has a concrete value at runtime (batch size comes from the
+        loader, weight decay from the optimizer, dropout from the model's
+        own default), so we record them here. Without this, the generated
+        report shows ``?`` for columns that were in fact well-defined.
+        """
+        effective = dict(params)
+        effective.setdefault("learning_rate", lr)
+        effective.setdefault("weight_decay", wd)
+        effective.setdefault("epochs", epochs)
+
+        # Batch size is a property of the loader the tuner was handed.
+        loader_batch = getattr(self.train_loader, "batch_size", None)
+        effective.setdefault("batch_size", loader_batch)
+
+        # Dropout is only meaningful for models that actually have it
+        # (e.g. ResNetMini has no dropout layer at all).
+        if "dropout" in model_kwargs:
+            effective.setdefault("dropout", model_kwargs["dropout"])
+        else:
+            effective.setdefault("dropout", None)
+        return effective
 
 
 # ---------------------------------------------------------------------------
@@ -374,11 +350,15 @@ def results_to_markdown(results: Sequence[TrialResult], top_k: int | None = None
     ]
     for r in ordered:
         p = r.params
+        # A value of ``None`` means the parameter does not apply to this
+        # architecture (e.g. ResNetMini has no dropout layer at all).
+        dropout = p.get("dropout")
+        dropout_cell = "-" if dropout is None else dropout
         lines.append(
             f"| {r.trial_id} | {p.get('model_name', '?')} | "
             f"{p.get('learning_rate', '?')} | {p.get('batch_size', '?')} | "
             f"{p.get('optimizer', '?')} | {p.get('weight_decay', '?')} | "
-            f"{p.get('dropout', '-')} | {p.get('epochs', '?')} | "
+            f"{dropout_cell} | {p.get('epochs', '?')} | "
             f"{r.train_acc:.2f}% | {r.val_acc:.2f}% | {r.n_params:,} |"
         )
     return "\n".join(lines) + "\n"
