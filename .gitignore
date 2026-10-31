@@ -97,6 +97,18 @@ results/runs/*
 !results/runs/loss_curve.png
 !results/runs/accuracy_curve.png
 !results/runs/test_metrics.md
+!results/runs/test_metrics.json
+!results/runs/dataset_info.md
+!results/runs/architecture_selection.md
+!results/runs/hyperopt.md
+!results/runs/hyperopt.json
+!results/runs/hyperopt_best.json
+!results/runs/class_distribution.png
+!results/runs/pixel_histogram.png
+!results/runs/per_class_samples.png
+!results/runs/sample_images.png
+!results/runs/confusion_matrix.png
+!results/runs/predictions.png
 logs/
 
 # OS
