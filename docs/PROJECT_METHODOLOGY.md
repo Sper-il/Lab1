@@ -170,7 +170,7 @@ Cho một bức ảnh xám 28×28 pixel của một món đồ thời trang, má
 #### 1. Stratified Split (Phân tầng)
 - **Vấn đề:** Chia ngẫu nhiên có thể làm mất cân bằng lớp trong từng tập
 - **Giải pháp:** Đảm bảo tỷ lệ mỗi lớp trong train và val là giống nhau
-- **Ví dụ:** Cả train và val đều có đúng 600 ảnh/lớp
+- **Ví dụ:** train có 5.000 ảnh/lớp, val và test có 1.000 ảnh/lớp (từ 6.000 ảnh gốc mỗi lớp)
 
 #### 2. Random Seed = 42
 - **Vấn đề:** Mỗi lần chạy lại cho kết quả khác nhau
@@ -203,14 +203,15 @@ Giải pháp 3 tập:
 
 **Tại sao cần baseline?** Để biết "mức sàn" performance và làm điểm so sánh với model phức tạp hơn.
 
-**Kiến trúc BaselineMLP:**
+**Kiến trúc BaselineMLP (code thật `src/models/baseline_model.py`):**
 
 | Layer | Input → Output | Vai trò |
 |-------|---------------|---------|
 | Flatten | [B,1,28,28] → [B,784] | Trải phẳng ảnh 2D thành vector 1D |
-| Linear + ReLU | 784 → 256 | Học 256 đặc trưng từ 784 pixel |
-| Linear + ReLU | 256 → 128 | Tiếp tục nén thông tin |
-| Linear | 128 → 10 | Cho ra "điểm" cho 10 lớp (logits) |
+| Linear + ReLU + Dropout(0,2) | 784 → 256 | Học 256 đặc trưng + chống overfit |
+| Linear | 256 → 10 | Cho ra "điểm" cho 10 lớp (logits) |
+
+Tổng 203.530 params. Chỉ 1 hidden layer — cố ý giữ đơn giản để làm mức sàn sanity-check.
 
 **Các kỹ thuật áp dụng:**
 
@@ -219,9 +220,9 @@ Giải pháp 3 tập:
 | **Flatten layer** | Chuyển tensor 2D thành vector 1D |
 | **Fully Connected (Linear)** | Mỗi nơ-ron kết nối với tất cả nơ-ron lớp trước |
 | **ReLU activation** | f(x) = max(0, x) — thêm phi tuyến, tránh vanishing gradient |
-| **Progressive dimension reduction** | 784 → 256 → 128 → 10 (nén dần thông tin) |
+| **Single hidden layer** | 784 → 256 → 10 (giữ đơn giản cố ý để làm mức sàn sanity-check) |
 
-**Tại sao chọn 256, 128?** Đây là các con số phổ biến, không quá lớn (tránh overfit) cũng không quá nhỏ (tránh underfit).
+**Tại sao chọn 256?** Đây là con số phổ biến, không quá lớn (tránh overfit) cũng không quá nhỏ (tránh underfit) — đủ để làm mức sàn sanity-check trước khi lên CNN.
 
 ---
 
@@ -307,16 +308,18 @@ Input 4x4:                Output 2x2:
 ```
 Input ảnh [1, 28, 28]
    ↓
-Conv2d(1→32) + BatchNorm + ReLU + MaxPool     → [32, 14, 14]
+Conv2d(1→32) + ReLU + MaxPool     → [32, 14, 14]
    ↓
-Conv2d(32→64) + BatchNorm + ReLU + MaxPool    → [64, 7, 7]
+Conv2d(32→64) + ReLU + MaxPool    → [64, 7, 7]
    ↓
 Flatten                                        → [3136]
    ↓
-Linear(3136→128) + ReLU + Dropout              → [128]
+Linear(3136→128) + ReLU + Dropout(0,5)         → [128]
    ↓
 Linear(128→10)                                 → [10] (logits cho 10 lớp)
 ```
+
+> Lưu ý: `SimpleCNN` cố ý **không dùng BatchNorm** (giữ đơn giản theo đề); BatchNorm chỉ dùng cho `DeepMLP` và `ResNetMini`. Nguồn thật: `src/models/architectures/simple_cnn.py`.
 
 **So sánh MLP vs CNN:**
 

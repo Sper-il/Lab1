@@ -247,7 +247,7 @@
 ## Open Questions
 
 - [x] Người 3 đã hoàn tất evaluation, save/load và predicted-vs-actual.
-- [ ] Full pipeline integration test và báo cáo tổng hợp đã hoàn tất chưa?
+- [x] Full pipeline integration test và báo cáo tổng hợp đã hoàn tất (3 báo cáo cá nhân + `docs/PHASE2_FINAL_REPORT.md` + `docs/training.md`/`evaluation.md`/`demo.md`, test 92,10%).
 - [x] Người dùng đã nghiệm thu kết quả Người 2.
 - [x] Đã được phép xóa spec/plan triển khai sau khi chuyển nội dung cần thiết vào báo cáo.
 - [x] Người 3 evaluation đã hoàn thành với test_acc=92.10%.
@@ -301,7 +301,7 @@
   - [x] Error analysis → `src/evaluation/error_analysis.py`
   - [x] Predicted vs actual images → `src/evaluation/visualizer.py`
   - [x] `src/evaluation/run_evaluation.py` entry point
-- [ ] **Final report & visualization** ⏳ PENDING
+- [x] **Final report & visualization** ✅ DONE (`docs/PHASE2_FINAL_REPORT.md` + `docs/training.md` + `docs/evaluation.md` + `docs/demo.md` + curves/confusion/predictions trong `results/runs/`)
 
 ---
 

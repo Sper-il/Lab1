@@ -32,15 +32,10 @@ Fashion-MNIST is a dataset of Zalando's article images, consisting of:
 ```
 e:\lab1/
 ├── data/
-│   ├── raw/                # Original FashionMNIST dataset (gitignored)
-│   │   ├── FashionMNIST/   # Original archive
-│   │   └── _torchvision_cache/  # Torchvision download cache
-│   ├── processed/          # Split images as PNG (gitignored, 70k files)
-│   │   ├── train/<class_id>/*.png   # 50.000 train images
-│   │   ├── val/<class_id>/*.png     # 10.000 val images
-│   │   └── test/<class_id>/*.png    # 10.000 test images
+│   ├── processed/FashionMNIST/raw/  # FashionMNIST gốc của torchvision (tải 1 lần, gitignored)
+│   ├── processed/train|val|test/<class_id>/*.png  # artifact Phase 1 cũ (70k PNG, không còn được đọc)
 │   ├── splits/             # Train/val/test split info
-│   │   └── split_info.txt
+│   │   └── split_info.txt  # Train 50000 · Val 10000 · Test 10000, seed 42
 │   └── README.md           # Data folder guide
 ├── src/
 │   ├── data/               # Phase 1: Data preparation modules
@@ -157,7 +152,7 @@ e:\lab1/
 
 ### Phase 4: Reporting ✅ MOSTLY COMPLETE
 11. **Model Saving/Loading** → Done (`trained_model.pt`, `final_model.pt`)
-12. **Reports** → Done (3 per-person reports + `PROJECT_METHODOLOGY.md`)
+12. **Reports** → Done (3 per-person reports + `PHASE2_FINAL_REPORT.md` + `training.md`/`evaluation.md`/`demo.md` + `PROJECT_METHODOLOGY.md`)
 
 ## 8. Getting Started
 
@@ -171,7 +166,7 @@ pip install -r requirements.txt
 # Test the data pipeline end-to-end (load → clean → preprocess → split)
 python -m src.data.preprocessing
 
-# Regenerate the 70k split PNGs (idempotent)
+# Build the stratified split in RAM (50k/10k/10k, seed=42) + save metadata to data/splits/split_info.txt
 python -m src.data.split --root data/processed --val-split 10000 --seed 42
 
 # Regenerate the 4 EDA plots into results/runs/
@@ -297,6 +292,9 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 | [docs/data.md](docs/data.md) | Quy ước dữ liệu |
 | [docs/data-flow.md](docs/data-flow.md) | Luồng dữ liệu |
 | [docs/api.md](docs/api.md) | API nội bộ giữa các module |
+| [docs/training.md](docs/training.md) | Báo cáo tổng quan Training (báo cáo chính) |
+| [docs/evaluation.md](docs/evaluation.md) | Báo cáo tổng quan Evaluation (báo cáo chính) |
+| [docs/demo.md](docs/demo.md) | Báo cáo tổng quan Demo (kịch bản + roadmap 1 lệnh) |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | Experiment log |
 | [docs/PHASE1_REPORT.md](docs/PHASE1_REPORT.md) | Phase 1 summary |
 | [docs/PHASE2_PLAN.md](docs/PHASE2_PLAN.md) | Phase 2 plan (3 people, aligned với đề) |

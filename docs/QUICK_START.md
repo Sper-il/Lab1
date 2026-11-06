@@ -4,15 +4,14 @@
 
 This project implements a FashionMNIST classifier using PyTorch. The project follows a 12-step ML workflow.
 
-## Current Status: Phase 1 Complete
+## Current Status: Phase 2 COMPLETE — Test Accuracy 92,10% (vượt mục tiêu 90%)
 
-Only the data preparation steps have been implemented:
-- ✅ EDA
-- ✅ Data Cleaning
-- ✅ Preprocessing
-- ✅ Data Split
-
-Other modules are placeholders (empty files) for future phases.
+Đã hoàn thành toàn bộ pipeline:
+- ✅ EDA, Data Cleaning, Preprocessing, Data Split (stratified 50k/10k/10k, seed=42)
+- ✅ 4 kiến trúc + ModelFactory + grid search 16 trials (best `simple_cnn` + Adam + lr=0,001 → val 92,33%)
+- ✅ Full training 15 epochs CPU (`python main.py` → best epoch 11, test 92,10%)
+- ✅ Evaluation + Save/Load + predicted vs actual (`python src/evaluation/run_evaluation.py`)
+- ✅ Báo cáo chính: `docs/training.md`, `docs/evaluation.md`, `docs/demo.md`, `docs/PHASE2_FINAL_REPORT.md`
 
 ## Project Structure
 
@@ -24,28 +23,23 @@ e:\lab1/
 ├── requirements.txt             # Python dependencies
 ├── .gitignore                   # Git ignore rules
 │
-├── main.py                      # Main training script (Phase 2+ placeholder)
+├── main.py                      # Entry point training (YAML + CLI override → run_training.py)
 │
 ├── data/                        # Dataset storage
-│   ├── raw/                     # Original FashionMNIST (downloaded, gitignored)
-│   │   ├── FashionMNIST/        # Original archive
-│   │   └── _torchvision_cache/  # Torchvision download cache
-│   ├── processed/               # Split PNGs (gitignored, 70k files)
-│   │   ├── train/<class_id>/*.png  # 50.000 train
-│   │   ├── val/<class_id>/*.png    # 10.000 val
-│   │   └── test/<class_id>/*.png   # 10.000 test
+│   ├── processed/FashionMNIST/  # FashionMNIST gốc của torchvision (tải 1 lần, gitignored)
+│   ├── processed/train|val|test/<class_id>/*.png  # artifact Phase 1 cũ (70k PNG, không còn được đọc)
 │   └── splits/                  # Split info (committed)
-│       └── split_info.txt
+│       └── split_info.txt       # Train 50000 · Val 10000 · Test 10000, seed 42
 │
 ├── src/                         # Source code
 │   ├── data/                    # Phase 1: Data preparation
 │   │   ├── dataset.py           # Dataset loader
 │   │   ├── eda.py               # EDA module
 │   │   ├── preprocessing.py     # Cleaning + preprocessing
-│   │   └── split.py             # Train/val/test split
-│   ├── models/                  # Phase 2: Models (placeholder)
-│   ├── training/                # Phase 2: Training (placeholder)
-│   └── evaluation/              # Phase 2: Evaluation (placeholder)
+│   │   └── split.py             # Train/val/test split (stratified 5/6–1/6, seed 42)
+│   ├── models/                  # Người 1: 4 kiến trúc + ModelFactory + model_selection
+│   ├── training/                # Người 1 (tuning) + Người 2 (Trainer, callbacks, visualizer)
+│   └── evaluation/              # Người 3: evaluator, model_io, confusion, error, visualizer
 │
 ├── models/                      # Trained model checkpoints
 │   └── checkpoints/
@@ -93,10 +87,10 @@ python -m src.data.split --root data/processed --val-split 10000 --seed 42
 ```
 
 Script này sẽ:
-- Tải FashionMNIST gốc về `data/raw/_torchvision_cache/` (lần đầu)
-- Chia 60.000 ảnh train gốc thành 50.000 train + 10.000 val (random, seed=42)
-- Ghi 70.000 ảnh `.png` (28×28 grayscale) vào `data/processed/{train,val,test}/<class_id>/`
-- Idempotent — skip nếu đã tồn tại
+- Tải FashionMNIST gốc về `data/processed/FashionMNIST/raw/` (lần đầu, ~30 MB)
+- Chia 60.000 ảnh train gốc thành 50.000 train + 10.000 val (stratified, seed=42)
+- Test giữ nguyên 10.000 ảnh gốc, không chia lại
+- Ghi metadata vào `data/splits/split_info.txt` + in số batch từng tập
 
 ### 3. Run EDA Visualization (1 lần, ~20s)
 
@@ -122,29 +116,26 @@ Generates 4 plots in `results/runs/`:
 | Class balance | Perfect (6,000 each) |
 | Data quality | 100% valid |
 
-## Next Steps (Phase 2 - 3 người)
+## Kết quả Phase 2 (đã hoàn thành — test 92,10%)
 
-Phase 1 is complete. The next phase will implement (theo đề bài):
+Phase 1 xong, Phase 2 cũng đã xong toàn bộ (theo đề bài):
 
-### 👤 Người 1: Build Network + Hyperparameter Experiment
-- Baseline MLP model
-- Multiple architectures (MLP, SimpleCNN, ResNet)
-- Hyperparameter tuning
+### 👤 Người 1: Build Network + Hyperparameter Experiment ✅ DONE
+- 4 kiến trúc (`baseline_mlp`, `deep_mlp`, `simple_cnn`, `resnet_mini`) + ModelFactory
+- Grid search 16 trials × 10 epochs → best `simple_cnn` + Adam + lr=0,001 → val 92,33%
 - Files: `src/models/baseline_model.py`, `architectures/*.py`, `training/hyperparameter_tuning.py`
 
-### 👤 Người 2: Training Loop + Visualize Loss
-- Training loop (forward, loss, backward, optimize)
-- Callbacks, losses, optimizers
-- Visualize loss curve
-- Files: `src/training/trainer.py`, `visualizer.py`
+### 👤 Người 2: Training Loop + Visualize Loss ✅ DONE
+- Training loop (forward → loss → backward → optimize) + early stopping + checkpoint
+- Full 15 epochs CPU → best epoch 11 (val_loss 0,215183), test 92,10%
+- Files: `src/training/trainer.py`, `callbacks.py`, `losses.py`, `optimizers.py`, `visualizer.py`
 
-### 👤 Người 3: Evaluate + Save/Load + Display
-- Model evaluation (accuracy ≥ 90%)
-- Save/Load model
-- Display predicted vs actual images
-- Files: `src/evaluation/evaluator.py`, `model_io.py`, `visualizer.py`
+### 👤 Người 3: Evaluate + Save/Load + Display ✅ DONE
+- Test accuracy 92,10%, precision/recall/F1 ~92,1%, confusion matrix, predicted vs actual
+- Save `final_model.pt` kèm metrics
+- Files: `src/evaluation/evaluator.py`, `model_io.py`, `visualizer.py`, `confusion_matrix.py`
 
-See chi tiết tại `docs/PHASE2_PLAN.md`.
+Chi tiết xem `docs/PHASE2_PLAN.md`, `docs/PHASE2_FINAL_REPORT.md`, `docs/training.md`, `docs/evaluation.md`.
 
 ## Notes
 

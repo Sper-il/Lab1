@@ -7,19 +7,19 @@
 ## 0. Tổng quan pipeline
 
 ```
-Người 1 (đã xong)        Người 2 (đang làm)         Người 3 (làm tiếp)
+Người 1 (đã xong)        Người 2 (đã xong)              Người 3 (đã xong)
 ─────────────────         ─────────────────          ──────────────────
 data/processed/  ──────►  trainer.py                  ──────►  evaluator.py
 src/models/        ──────►  src/training/trainer.py   ──────►  model_io.py
 src/training/      ──────►  callbacks/visualizer      ──────►  visualizer.py
-configs/hyperopt.yaml     main.py (loop chính)
+configs/hyperopt_config.yaml     main.py (loop chính)         run_evaluation.py
 run_experiments.py
 ```
 
-- **Data (Phase 1)** đã có sẵn ở `data/processed/` (54k train / 6k val / 10k test).
+- **Data (Phase 1)** đã có sẵn ở `data/processed/` (50k train / 10k val / 10k test, stratified, seed=42).
 - **Người 1**: 4 kiến trúc + hyperparameter tuning → đã xong, chạy được qua `run_experiments.py`.
-- **Người 2**: training loop + callbacks + visualize loss → đang code.
-- **Người 3**: evaluate + save/load + display predictions.
+- **Người 2**: training loop + callbacks + visualize loss → đã xong (`python main.py`, test 92,10%).
+- **Người 3**: evaluate + save/load + display predictions → đã xong (`python src/evaluation/run_evaluation.py`).
 
 ---
 
@@ -28,7 +28,7 @@ run_experiments.py
 ### 1.1. Clone & mở project
 
 ```powershell
-cd C:\Users\hoait\Downloads\Lab1
+cd e:\lab1
 ```
 
 ### 1.2. Tạo virtual environment (venv)
@@ -76,15 +76,13 @@ python -m src.data.split --root data/processed --val-split 10000 --seed 42
 Kiểm tra output:
 
 ```
-data/
-├── raw/                          # dataset gốc (auto download lần đầu)
-├── processed/
-│   ├── train/<class_id>/*.png    # 50,000 ảnh
-│   ├── val/<class_id>/*.png      # 10,000 ảnh
-│   └── test/<class_id>/*.png     # 10,000 ảnh
-└── splits/
-    └── split_info.txt            # metadata split
+data/processed/FashionMNIST/raw/  # dataset gốc (auto download lần đầu, ~30 MB)
+data/splits/split_info.txt        # metadata split: Train 50000 · Val 10000 · Test 10000, seed 42
 ```
+
+> Lưu ý: `data/processed/{train,val,test}/<class_id>/*.png` (70k PNG) là artifact
+> Phase 1 cũ, không còn được đọc — `run_training.py` / `run_experiments.py` đọc
+> tensor gốc qua `split_pipeline` (xem `docs/data.md`).
 
 ---
 
@@ -130,8 +128,9 @@ params       :
 
 Artifacts tự động ghi vào:
 - `results/runs/hyperopt.json` — toàn bộ trial results
-- `results/runs/architecture_selection.md` — so sánh architectures
-- `results/runs/best_config.json` — best config tìm được
+- `results/runs/hyperopt.md` — bảng markdown 16 trials
+- `results/runs/hyperopt_best.json` — best trial (trial 9: simple_cnn + Adam + lr=0,001 → val 92,33%)
+- `results/runs/architecture_selection.md` — so sánh architectures (pilot 2 epochs)
 
 ### 4.3. Grid search đầy đủ — 16 trials × 10 epoch (~4,5 giờ CPU)
 
@@ -147,57 +146,39 @@ Config ở `configs/hyperopt_config.yaml` — muốn đổi search space thì s�
 
 ---
 
-## 5. Chạy phần của Người 2 (Training loop) 🚧 ĐANG CODE
+## 5. Chạy phần của Người 2 (Training loop) ✅ ĐÃ HOÀN THÀNH
 
-### 5.1. File cần tạo
+### 5.1. File đã có
 
 ```
-src/training/trainer.py          # loop chính: forward → loss → backward → step
-src/training/callbacks.py        # early stopping, checkpoint, log
-src/training/visualizer.py       # vẽ loss/acc curve
-main.py                          # entry point cho Người 2 (override stub)
+src/training/trainer.py          # Trainer: train_epoch → validate → train (forward → loss → backward → step)
+src/training/callbacks.py        # EarlyStopping (val_loss/min/patience=5/min_delta=0,0001), best → trained_model.pt, last → last_model.pt
+src/training/losses.py           # create_loss (CrossEntropyLoss)
+src/training/optimizers.py       # create_optimizer (Adam/SGD)
+src/training/visualizer.py       # loss/accuracy curves → results/runs/
+run_training.py                  # orchestration (validate config + seed + device + persist artifacts)
+main.py                          # entry point cho Người 2 (YAML + CLI override)
 ```
 
-### 5.2. Skeleton trainer (tham khảo)
+### 5.2. Training loop thực tế (`src/training/trainer.py`)
 
-```python
-# src/training/trainer.py
-import torch
-import torch.nn.functional as F
-from torch.utils.data import DataLoader
+Code chính thức dùng class `Trainer` (không còn skeleton hàm rời rạc):
+- `train_epoch()`: `zero_grad(set_to_none=True)` → forward logits `(B,10)` → loss → `backward()` → `step()`, metrics weighted theo số mẫu.
+- `validate()`: `model.eval()` + `torch.no_grad()`, không cập nhật tham số.
+- `train(epochs)`: lặp epoch, gọi `EarlyStopping.step(...)` mỗi epoch, log thời gian, cuối cùng restore best weights.
+- Chi tiết đầy đủ xem `docs/training.md` (báo cáo chính) và `docs/api.md` mục 3.
 
-def train_one_epoch(model, loader, optimizer, device):
-    model.train()
-    total, correct, loss_sum = 0, 0, 0.0
-    for x, y in loader:
-        x, y = x.to(device), y.to(device)
-        optimizer.zero_grad()
-        logits = model(x)
-        loss = F.cross_entropy(logits, y)
-        loss.backward()
-        optimizer.step()
-        loss_sum += loss.item() * x.size(0)
-        correct += (logits.argmax(1) == y).sum().item()
-        total += x.size(0)
-    return loss_sum / total, correct / total
-
-@torch.no_grad()
-def evaluate(model, loader, device):
-    model.eval()
-    total, correct = 0, 0
-    for x, y in loader:
-        x, y = x.to(device), y.to(device)
-        logits = model(x)
-        correct += (logits.argmax(1) == y).sum().item()
-        total += x.size(0)
-    return correct / total
-```
-
-### 5.3. Lệnh chạy tạm (khi đã có trainer.py)
+### 5.3. Lệnh chạy chính thức
 
 ```powershell
-python main.py --model simple_cnn --epochs 5 --lr 0.001 --optimizer adam
+# Full training 15 epochs (CPU ~20 phút) — run chính thức, test 92,10%
+python main.py
+
+# Override nhanh
+python main.py --epochs 10 --batch-size 128 --lr 0.001
 ```
+
+Kết quả: best epoch 11 (val_loss 0,215183, val_acc 92,85%) → `models/checkpoints/trained_model.pt`; history `results/runs/training_history.json`; curves `loss_curve.png`, `accuracy_curve.png`. Chi tiết xem `docs/training.md`.
 
 ### 5.4. Test nhanh 1 model
 
@@ -226,14 +207,14 @@ for epoch in range(2):
 
 ---
 
-## 6. Chạy Người 3 (Evaluate + Save/Load) — Chưa code
-
-Khi code đã có:
+## 6. Chạy Người 3 (Evaluate + Save/Load) ✅ ĐÃ HOÀN THÀNH
 
 ```powershell
-python -m src.evaluation.evaluator --checkpoint models/best.pt --split test
-python -m src.evaluation.model_io --save models/best.pt
+$env:PYTHONPATH = "."
+python src/evaluation/run_evaluation.py
 ```
+
+Quy trình: load `models/checkpoints/trained_model.pt` → predict 10.000 test → metrics (test 92,10%) → top-5 confused → `test_metrics.{json,md}` → `predictions.png` (20 ảnh xanh=đúng đỏ=sai) → `confusion_matrix.png` → save `models/checkpoints/final_model.pt` (kèm metrics). Chi tiết xem `docs/evaluation.md` (báo cáo chính).
 
 ---
 
@@ -259,7 +240,7 @@ Get-Content _e2e_run.log -Tail 30   # xem 30 dòng cuối
 
 | Lỗi | Nguyên nhân | Cách fix |
 |------|-----------|----------|
-| `ModuleNotFoundError: No module named 'src'` | Chưa `cd` đúng thư mục gốc | `cd C:\Users\hoait\Downloads\Lab1` |
+| `ModuleNotFoundError: No module named 'src'` | Chưa `cd` đúng thư mục gốc | `cd e:\lab1` |
 | `'ResNetMini' object has no attribute 'expansion'` | Bug cũ đã fix ở `src/models/architectures/advanced_cnn.py` | Pull code mới nhất |
 | `pin_memory` warning | CPU only | Bỏ qua warning, không ảnh hưởng |
 | Loss = 89.97% ở trial 1 nhưng giảm ở trial 2 | Grid cũng tất định — không phải lỗi | Kiểm tra `grid_search` đã expand đúng product |

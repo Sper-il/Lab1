@@ -101,7 +101,7 @@ Xem chi tiết tại `docs/PHASE2_PLAN.md`, `docs/PHASE2_FINAL_REPORT.md` và 3 
 - Best config (grid 16 trials × 10 epochs): `simple_cnn` + Adam + lr=0,001 → val 92,33% (`results/runs/hyperopt.md`).
 - Full training 15 epochs CPU (`python main.py`): best epoch 11 (val_loss 0,215183, val_acc 92,85%), đỉnh val_acc 92,88% epoch 13.
 - Test (`python src/evaluation/run_evaluation.py`): accuracy **92,10%**, precision/recall/F1 macro ~92,1%.
-- Artifacts: `models/checkpoints/trained_model.pt` (best), `final_model.pt` (kèm metrics), `results/runs/training_history.json`, `loss_curve.png`, `accuracy_curve.png`, `confusion_matrix.png`, `predictions.png`.
+- Artifacts: `models/checkpoints/trained_model.pt` (best), `models/checkpoints/final_model.pt` (kèm metrics), `results/runs/training_history.json`, `loss_curve.png`, `accuracy_curve.png`, `confusion_matrix.png`, `predictions.png`.
 - Báo cáo: `docs/reports/nguoi1_models_report.md`, `nguoi2_training_report.md`, `nguoi3_evaluation_report.md`, `docs/PHASE2_FINAL_REPORT.md`.
 
 ## Tech Stack

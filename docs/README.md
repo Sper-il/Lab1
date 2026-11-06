@@ -35,6 +35,12 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 | [data.md](./data.md) | Quy ước dữ liệu |
 | [data-flow.md](./data-flow.md) | Luồng dữ liệu |
 | [api.md](./api.md) | API nội bộ giữa các module |
+| [training.md](./training.md) | Báo cáo tổng quan Training (báo cáo chính, không phải cá nhân) |
+| [evaluation.md](./evaluation.md) | Báo cáo tổng quan Evaluation (báo cáo chính, không phải cá nhân) |
+| [demo.md](./demo.md) | Báo cáo tổng quan Demo (kịch bản + cách chạy + roadmap 1 lệnh) |
+| [TEAM_GUIDE.md](./TEAM_GUIDE.md) | Hướng dẫn chạy cho cả team (3 người) |
+| [PROJECT_METHODOLOGY.md](./PROJECT_METHODOLOGY.md) | Quy trình thực hiện + giải thích kỹ thuật |
+| [PRESENTATION_CHEATSHEET.md](./PRESENTATION_CHEATSHEET.md) | Kịch bản thuyết trình 10 phút |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | Experiment log |
 
 ## Phase Reports (Subfolder: `reports/`)

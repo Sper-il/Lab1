@@ -4,7 +4,7 @@ Data Split Module
 Handles train/validation/test data splitting.
 
 Split Strategy:
-- Training: 50,000 samples (10,000 per class)
+- Training: 50,000 samples (5,000 per class)
 - Validation: 10,000 samples (1,000 per class)
 - Test: 10,000 samples — the dataset's own official test split,
   loaded as-is and never re-split
