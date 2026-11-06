@@ -1,0 +1,35 @@
+{
+  "metrics": {
+    "accuracy": 92.10000000000001,
+    "precision_macro": 92.10883405741951,
+    "recall_macro": 92.1,
+    "f1_macro": 92.08851131768476
+  },
+  "top_confusions": [
+    {
+      "true": "Shirt",
+      "predicted": "T-shirt/top",
+      "count": 95
+    },
+    {
+      "true": "T-shirt/top",
+      "predicted": "Shirt",
+      "count": 90
+    },
+    {
+      "true": "Shirt",
+      "predicted": "Pullover",
+      "count": 64
+    },
+    {
+      "true": "Coat",
+      "predicted": "Pullover",
+      "count": 63
+    },
+    {
+      "true": "Coat",
+      "predicted": "Shirt",
+      "count": 55
+    }
+  ]
+}

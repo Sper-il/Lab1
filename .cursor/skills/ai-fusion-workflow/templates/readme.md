@@ -19,7 +19,6 @@ Dùng làm khung cho `README.md` của mọi project AI/ML.
 | Độ ưu tiên | Tính năng | Lý do |
 |------------|-----------|-------|
 | Must | <tính năng> | <lý do phải có> |
-| Trên đây | <tính năng> | <lý do phải có> |
 | Should | <tính năng> | <lý do nên có> |
 | Could | <tính năng> | <lý do có thì tốt> |
 
@@ -61,7 +60,7 @@ source .venv/bin/activate   # Linux/Mac
 pip install -r requirements.txt
 
 # 4. Chuẩn bị data
-# Đặt dữ liệu vào data/raw/ theo hướng dẫn trong data/README.md
+# Đặt dữ liệu vào data/raw/ theo hướng dẫn trong docs/data.md
 
 # 5. Train
 python -m src.training --config configs/train_config.yaml
@@ -92,7 +91,7 @@ pytest -q
 ```
 
 ## 8. Results
-Lần chạy mới nhất: `results/runs/<timestamp>/metrics.json`
+Lần chạy mới nhất: `results/runs/<timestamp>/metrics.json` + báo cáo HTML `results/runs/<timestamp>/report.html` (mở bằng double-click, xem `modules/visualization.md`).
 
 | Metric | Target | Đạt được | Run |
 |--------|--------|----------|-----|
@@ -113,5 +112,5 @@ Lần chạy mới nhất: `results/runs/<timestamp>/metrics.json`
 ---
 
 Được duy trì với skill **ai-fusion-workflow**.
-Xem `AI_Usage.md` để biết cách AI được sử dụng trong project.
+Xem `docs/AI_Usage.md` để biết cách AI được sử dụng trong project.
 ```

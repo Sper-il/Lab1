@@ -15,28 +15,33 @@ FashionMNIST classification system using PyTorch.
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
-│                  Model Development (Upcoming)                 │
+│                  Model Development ✅ DONE                    │
 │  ┌────────────┐  ┌────────────┐  ┌────────────────────┐    │
 │  │  Baseline  │→ │  Selection │→ │ Hyperparameter Tune│    │
+│  │    ✅      │  │    ✅      │  │        ✅          │    │
 │  └────────────┘  └────────────┘  └────────────────────┘    │
+│  Best: simple_cnn + Adam lr=0,001 → val 92,33% (16 trials) │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
-│                  Training & Evaluation (Upcoming)              │
+│                  Training & Evaluation ✅ DONE                │
 │  ┌────────┐  ┌──────────┐  ┌──────────┐  ┌─────────────┐    │
 │  │ Train  │→ │Evaluate  │→ │  Errors  │→ │ Save/Load   │   │
+│  │   ✅   │  │    ✅    │  │    ✅    │  │     ✅      │   │
 │  └────────┘  └──────────┘  └──────────┘  └─────────────┘    │
+│  Full 15 epochs CPU → test 92,10% (best epoch 11)          │
 └──────────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────────┐
-│               Reporting & Experiments (Upcoming)              │
+│               Reporting & Experiments ✅ DONE                 │
 │  ┌─────────────────┐  ┌──────────────────────────────┐      │
 │  │ Experiment Track│→ │       Final Report            │      │
+│  │       ✅        │  │              ✅               │      │
 │  └─────────────────┘  └──────────────────────────────┘      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## Current Implementation (Phase 1)
+## Implemented Modules (Phase 1 + Phase 2 hoàn thành)
 
 ### Data Module (`src/data/`)
 
@@ -62,10 +67,8 @@ FashionMNIST classification system using PyTorch.
    - Subset creation
    - DataSplitManager
 
-## Upcoming Phases
-
-### Phase 2: Model Development, Training & Evaluation (3 người, align với đề)
-Xem chi tiết tại `docs/PHASE2_PLAN.md`.
+## Phase 2: Model Development, Training & Evaluation ✅ DONE (3 người, align với đề)
+Xem chi tiết tại `docs/PHASE2_PLAN.md`, `docs/PHASE2_FINAL_REPORT.md` và 3 báo cáo `docs/reports/nguoi{1,2,3}_*.md`.
 
 **Người 1 - Build Network + Hyperparameter Experiment:**
 - `src/models/baseline_model.py` - BaselineMLP
@@ -86,12 +89,20 @@ Xem chi tiết tại `docs/PHASE2_PLAN.md`.
 - `main.py` - Main training script
 
 **Người 3 - Evaluate + Save/Load + Display:**
-- `src/evaluation/evaluator.py` - Model evaluation
+- `src/evaluation/evaluator.py` - Model evaluation (test 92,10%)
 - `src/evaluation/metrics.py` - Accuracy, Precision, Recall, F1
-- `src/evaluation/model_io.py` - Save/Load model
-- `src/evaluation/visualizer.py` - Display predicted vs actual
-- `src/evaluation/confusion_matrix.py` - Confusion matrix
-- `src/evaluation/error_analysis.py` - Error analysis
+- `src/evaluation/model_io.py` - Save/Load model (`final_model.pt`)
+- `src/evaluation/visualizer.py` - Display predicted vs actual (`predictions.png`)
+- `src/evaluation/confusion_matrix.py` - Confusion matrix (`confusion_matrix.png`)
+- `src/evaluation/error_analysis.py` - Error analysis (top-5 confused pairs)
+
+## Kết quả cuối (Phase 2 ✅ DONE)
+
+- Best config (grid 16 trials × 10 epochs): `simple_cnn` + Adam + lr=0,001 → val 92,33% (`results/runs/hyperopt.md`).
+- Full training 15 epochs CPU (`python main.py`): best epoch 11 (val_loss 0,215183, val_acc 92,85%), đỉnh val_acc 92,88% epoch 13.
+- Test (`python src/evaluation/run_evaluation.py`): accuracy **92,10%**, precision/recall/F1 macro ~92,1%.
+- Artifacts: `models/checkpoints/trained_model.pt` (best), `final_model.pt` (kèm metrics), `results/runs/training_history.json`, `loss_curve.png`, `accuracy_curve.png`, `confusion_matrix.png`, `predictions.png`.
+- Báo cáo: `docs/reports/nguoi1_models_report.md`, `nguoi2_training_report.md`, `nguoi3_evaluation_report.md`, `docs/PHASE2_FINAL_REPORT.md`.
 
 ## Tech Stack
 

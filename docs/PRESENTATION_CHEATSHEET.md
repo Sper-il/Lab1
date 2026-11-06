@@ -110,6 +110,8 @@
 > Một chi tiết em thêm nữa: sau khi train xong, chương trình tự nạp lại trọng số của epoch tốt nhất. Nghĩa là model em dùng để đánh giá là model tốt nhất, không phải model ở epoch cuối.
 >
 > Em chạy 15 epoch. Em kể cô nghe bốn mốc quan trọng:
+>
+> → mở `results/runs/training_history.json` (bảng đầy đủ 15 epoch)
 
 | Epoch | Train Loss | Val Loss | Train Acc | Val Acc |
 |-------|-----------|----------|----------|---------|
@@ -181,10 +183,10 @@
 | **50.000 / 10.000 / 10.000** | Train / Val / Test |
 | **0.286 / 0.353** | Mean / Std của pixel |
 | **92.33%** | Best val acc — Grid search 16 trials × 10 epoch |
-| **96 s/epoch** | Tốc độ train SimpleCNN (CPU) |
+| **75 s/epoch** | Tốc độ train SimpleCNN ở run chính (15 epoch, bs=128) |
 | **0.215** | Val loss thấp nhất @ epoch 11 |
 | **185** | Tổng nhầm Shirt ↔ T-shirt |
 | **27** | Số unit test (`tests/`, tất cả đều pass) |
 | **421.642** | Params SimpleCNN |
 | **87.05%** | Baseline MLP — mức sàn 2 epoch |
-| **259 / 96** | s/epoch ResNetMini / SimpleCNN = 2,7× chậm hơn |
+| **259 / 96** | s/epoch ResNetMini / SimpleCNN ở bảng so sánh kiến trúc = 2,7× chậm hơn |

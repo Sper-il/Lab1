@@ -3,7 +3,7 @@
 **Last Updated:** 2026-10-15 16:35
 **Project Status:** Phase 2 COMPLETE — Người 1 ✅ DONE; Người 2 ✅ DONE; Người 3 ✅ DONE
 **Current Milestone:** Full Pipeline Integration — Test Accuracy: 92.10%
-**Last Run:** Official full training 15 epochs — best epoch 11, val_loss=0.215334, val_acc=92.88%; last epoch 15, val_acc=93.03%; Evaluation test_acc=92.10%
+**Last Run:** Official full training 15 epochs — best epoch 11, val_loss=0.215183, val_acc=92.85%; last epoch 15, val_acc=92.80%; Evaluation test_acc=92.10%
 
 ---
 
@@ -461,9 +461,9 @@ early_stopping: val_loss / min / patience=5 / min_delta=0.0001
 Command: `python main.py`
 
 - Completed 15/15 epochs.
-- Best checkpoint: epoch 11, `val_loss=0.215334`, `val_acc=92.88%`.
-- Last checkpoint: epoch 15, `val_loss=0.219415`, `val_acc=93.03%`.
-- Final training accuracy: `94.93%`.
+- Best checkpoint: epoch 11, `val_loss=0.215183`, `val_acc=92.85%`.
+- Last checkpoint: epoch 15, `val_loss=0.229658`, `val_acc=92.80%`.
+- Final training accuracy: `94.72%`.
 
 ### Handoff artifacts
 

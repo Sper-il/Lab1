@@ -10,6 +10,7 @@ Split Strategy:
   loaded as-is and never re-split
 """
 
+import argparse
 import logging
 from pathlib import Path
 from typing import Tuple, Optional, List, Dict
@@ -376,7 +377,8 @@ def split_pipeline(
     data_dir: str = "./data/processed",
     batch_size: int = 64,
     val_ratio: float = DEFAULT_VAL_RATIO,
-    num_workers: int = 0
+    num_workers: int = 0,
+    random_seed: int = 42
 ) -> Tuple[DataLoader, DataLoader, DataLoader, SplitConfig]:
     """
     Complete data splitting pipeline.
@@ -388,6 +390,7 @@ def split_pipeline(
             training set. Defaults to ``1/6`` → 10,000 validation / 50,000
             train, which keeps clean per-class counts (1,000 / 5,000).
         num_workers: Number of workers
+        random_seed: Seed for the split (reproducibility)
 
     Returns:
         Tuple of (train_loader, val_loader, test_loader, config)
@@ -398,7 +401,8 @@ def split_pipeline(
     config = SplitConfig(
         train_ratio=1.0 - val_ratio,
         val_ratio=val_ratio,
-        test_ratio=0.0  # Test set is separate
+        test_ratio=0.0,  # Test set is separate
+        random_seed=random_seed
     )
     
     # Create manager
@@ -421,24 +425,65 @@ def split_pipeline(
     return train_loader, val_loader, test_loader, config
 
 
-if __name__ == "__main__":
-    # Test split module
-    from dataset import TransformBuilder
-    
-    logger.info("Testing data split module...")
-    
-    train_loader, val_loader, test_loader = split_pipeline(
-        data_dir="./data/processed",
-        batch_size=64,
-        val_ratio=DEFAULT_VAL_RATIO
+def _parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
+    """Parse CLI args cho ``python -m src.data.split``."""
+    parser = argparse.ArgumentParser(
+        prog="python -m src.data.split",
+        description="Chia FashionMNIST gốc thành train / val / test (stratified, seed cố định).",
     )
-    
+    parser.add_argument(
+        "--root",
+        default="data/processed",
+        help="Thư mục chứa FashionMNIST gốc (mặc định: data/processed)",
+    )
+    parser.add_argument(
+        "--val-split",
+        type=int,
+        default=10_000,
+        help="Số ảnh validation lấy từ tập train gốc (mặc định: 10000)",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed cho split (mặc định: 42)",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Batch size cho DataLoader (mặc định: 64)",
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[List[str]] = None) -> None:
+    """Entry point: build the loaders and report the resulting split sizes."""
+    args = _parse_args(argv)
+
+    # ``--val-split`` is an absolute count; convert it to a fraction of the
+    # 60,000-sample training set so it can be passed to ``split_pipeline``.
+    val_ratio = args.val_split / 60_000
+
+    logger.info("Testing data split module...")
+
+    train_loader, val_loader, test_loader, _split_config = split_pipeline(
+        data_dir=args.root,
+        batch_size=args.batch_size,
+        val_ratio=val_ratio,
+        random_seed=args.seed,
+    )
+
     print(f"\nTrain batches: {len(train_loader)}")
     print(f"Val batches: {len(val_loader)}")
     print(f"Test batches: {len(test_loader)}")
-    
+
     # Get sample batch
     images, labels = next(iter(train_loader))
     print(f"\nSample batch: images={images.shape}, labels={labels.shape}")
-    
+
     logger.info("Data split test completed successfully!")
+
+
+if __name__ == "__main__":
+    main()

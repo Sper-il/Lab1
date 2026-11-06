@@ -18,9 +18,10 @@ project-root/
 │   ├── training/           # training loop
 │   │   ├── trainer.py
 │   │   └── scheduler.py
-│   └── evaluation/         # đánh giá model + pipeline
+│   └── evaluation/         # đánh giá model + pipeline + visualize HTML
 │       ├── metrics.py
-│       └── visualize.py
+│       ├── visualize.py
+│       └── visualize_html.py   # render report.html offline từ metrics.json + plots/
 │
 ├── models/                 # model đã train
 │   ├── checkpoints/        # checkpoint trong quá trình train (gitignore)
@@ -38,6 +39,11 @@ project-root/
 │   ├── architecture.md     # sơ đồ kiến trúc
 │   ├── data-flow.md        # luồng dữ liệu
 │   ├── api.md              # API nội bộ giữa các module
+│   ├── description.md      # mô tả project (Define 6 mục)
+│   ├── data.md             # quy ước dữ liệu
+│   ├── progress_status.md  # single source of truth Define + Design
+│   ├── AI_Usage.md         # hồ sơ sử dụng AI
+│   ├── CHANGELOG.md        # lịch sử version
 │   └── decisions.md        # log quyết định kỹ thuật (optional)
 │
 ├── configs/                # config tổng thể (yaml/json)
@@ -46,21 +52,26 @@ project-root/
 │   └── train_config.yaml
 │
 ├── results/
-│   └── runs/
-│       └── 20261011-1708/  # theo timestamp
+│   ├── runs/
+│   │       └── 20261011-1708/  # theo timestamp
 │           ├── metrics.json
 │           ├── config.yaml
 │           ├── logs.txt
+│           ├── report.html         # báo cáo HTML offline duy nhất (xem modules/visualization.md)
 │           └── plots/
 │               ├── loss_curve.png
 │               └── confusion_matrix.png
+│   └── demo/
+│       └── <timestamp>/          # output demo 1 lệnh (xem modules/demo.md)
+│           ├── index.html        # bản rút gọn của report.html
+│           └── metrics.json
 │
 ├── .gitignore
 ├── README.md
-├── AI_Usage.md
-├── progress_status.md
+├── docs/AI_Usage.md
+├── docs/progress_status.md
 ├── requirements.txt
-└── CHANGELOG.md
+└── docs/CHANGELOG.md
 ```
 
 ## Nguyên tắc

@@ -247,8 +247,8 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 | Precision (macro) | 92.11% |
 | Recall (macro) | 92.10% |
 | F1-Score (macro) | 92.09% |
-| Validation Accuracy | 92.88% (best, epoch 11), 93.03% (last, epoch 15) |
-| Best Epoch | 11/15 (by `val_loss`) |
+| Validation Accuracy | 92.85% (epoch 11 — best by `val_loss`), đỉnh 92.88% ở epoch 13, 92.80% ở epoch 15 |
+| Best Epoch | 11/15 (by `val_loss` = 0.2152) |
 | Training Time | ~75 s/epoch (CPU) |
 
 ### Top Confused Classes
@@ -291,11 +291,16 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 | File | Description |
 |------|-------------|
 | [docs/README.md](docs/README.md) | Documentation index |
-| [docs/AI_Usage.md](docs/AI_Usage.md) | AI assistance report |
+| [docs/AI_Usage.md](docs/AI_Usage.md) | AI assistance report (chuẩn 7 mục) |
 | [docs/architecture.md](docs/architecture.md) | System architecture |
+| [docs/description.md](docs/description.md) | Mô tả project (Define 6 mục) |
+| [docs/data.md](docs/data.md) | Quy ước dữ liệu |
+| [docs/data-flow.md](docs/data-flow.md) | Luồng dữ liệu |
+| [docs/api.md](docs/api.md) | API nội bộ giữa các module |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | Experiment log |
 | [docs/PHASE1_REPORT.md](docs/PHASE1_REPORT.md) | Phase 1 summary |
 | [docs/PHASE2_PLAN.md](docs/PHASE2_PLAN.md) | Phase 2 plan (3 people, aligned với đề) |
+| [docs/PHASE2_FINAL_REPORT.md](docs/PHASE2_FINAL_REPORT.md) | Phase 2 final summary |
 | [docs/PROJECT_METHODOLOGY.md](docs/PROJECT_METHODOLOGY.md) | Quy trình thực hiện + giải thích kỹ thuật |
 | [docs/TEAM_GUIDE.md](docs/TEAM_GUIDE.md) | Hướng dẫn chạy cho cả team |
 | [docs/PRESENTATION_CHEATSHEET.md](docs/PRESENTATION_CHEATSHEET.md) | Kịch bản thuyết trình |

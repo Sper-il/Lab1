@@ -20,8 +20,9 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 |------|-------------|
 | [PHASE1_REPORT.md](./PHASE1_REPORT.md) | Phase 1 summary report |
 | [PHASE2_PLAN.md](./PHASE2_PLAN.md) | Phase 2 work plan (3 people, aligned với đề) |
+| [PHASE2_FINAL_REPORT.md](./PHASE2_FINAL_REPORT.md) | Phase 2 final summary (best model, metrics, lessons) |
 | [QUICK_START.md](./QUICK_START.md) | Quick start guide |
-| [AI_Usage.md](./AI_Usage.md) | AI assistance report |
+| [AI_Usage.md](./AI_Usage.md) | AI assistance report (chuẩn 7 mục) |
 | [audit_code.md](./audit_code.md) | Code audit report |
 | [CHANGELOG.md](./CHANGELOG.md) | Version history |
 
@@ -30,6 +31,10 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 | File | Description |
 |------|-------------|
 | [architecture.md](./architecture.md) | System architecture |
+| [description.md](./description.md) | Mô tả project (Define 6 mục) |
+| [data.md](./data.md) | Quy ước dữ liệu |
+| [data-flow.md](./data-flow.md) | Luồng dữ liệu |
+| [api.md](./api.md) | API nội bộ giữa các module |
 | [EXPERIMENTS.md](./EXPERIMENTS.md) | Experiment log |
 
 ## Phase Reports (Subfolder: `reports/`)
@@ -48,12 +53,11 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 |------|-------------|
 | [reports/REPORT_TEMPLATE.md](./reports/REPORT_TEMPLATE.md) | Template for new reports |
 
-### Phase Integration Reports (TBD)
+### Phase Integration Reports
 
 | File | Description |
 |------|-------------|
-| `reports/PHASE2_INTEGRATION_REPORT.md` | Integration test results (chưa tạo) |
-| `reports/PHASE2_FINAL_REPORT.md` | Phase 2 final summary (chưa tạo) |
+| [PHASE2_FINAL_REPORT.md](./PHASE2_FINAL_REPORT.md) | Phase 2 final summary (best model, metrics, lessons, recommendations) |
 
 ---
 

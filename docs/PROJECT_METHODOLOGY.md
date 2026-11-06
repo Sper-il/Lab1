@@ -161,8 +161,8 @@ Cho một bức ảnh xám 28×28 pixel của một món đồ thời trang, má
 
 | Tập | Tỷ lệ | Số mẫu | Vai trò |
 |-----|-------|--------|---------|
-| **Train** | 90% | 54,000 | Dùng để train model (model học từ đây) |
-| **Validation** | 10% | 6,000 | Đánh giá trong khi train, chọn best model |
+| **Train** | 5/6 | 50,000 | Dùng để train model (model học từ đây) |
+| **Validation** | 1/6 | 10,000 | Đánh giá trong khi train, chọn best model |
 | **Test** | 100% | 10,000 | Đánh giá cuối cùng, **không được dùng khi train** |
 
 **Các kỹ thuật áp dụng:**
@@ -670,8 +670,11 @@ Shirt         90      1       ...  640
 | 1 | 0.585 | 0.351 | 79.03% | 87.08% |
 | 5 | 0.265 | 0.237 | 90.41% | 91.42% |
 | 10 | 0.190 | 0.222 | 92.91% | 92.63% |
-| 11 (best) | 0.180 | **0.215** | 93.21% | 92.88% |
-| 15 (last) | 0.141 | 0.230 | 94.72% | 93.03% |
+| 11 (best) | 0.178 | **0.215** | 93.47% | 92.85% |
+| 15 (last) | 0.141 | 0.230 | 94.72% | 92.80% |
+
+> Nguồn: `results/runs/training_history.json` (run chính, 15 epoch, bs=128).
+> Best theo `val_loss` = epoch 11 (0.215183). Đỉnh `val_acc` = 92.88% ở epoch 13.
 
 ### 5.3 Tổng hợp các kỹ thuật đã sử dụng
 

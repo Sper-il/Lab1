@@ -37,9 +37,10 @@
 - [ ] Không có đoạn code "magic" không giải thích được.
 
 ## Docs đã cập nhật
-- [ ] `README.md` cập nhật nếu có thay đổi về cách chạy.
-- [ ] `AI_Usage.md` ghi thêm artifact mới (file, prompt, sửa đổi).
-- [ ] `progress_status.md` cập nhật module log, decisions log, risks.
+- [ ] `README.md` cập nhật nếu có thay đổi về cách chạy (kèm link `report.html` mới nhất ở mục Results).
+- [ ] `docs/AI_Usage.md` ghi thêm artifact mới (file, prompt, sửa đổi).
+- [ ] `docs/progress_status.md` cập nhật module log, decisions log, risks.
+- [ ] Module eval/visualize đã sinh `results/runs/<ts>/report.html` offline mở được bằng double-click, số khớp `metrics.json`.
 - [ ] Comment trong code cho phần phức tạp.
 
 ## Committed

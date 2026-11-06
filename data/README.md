@@ -1,27 +1,24 @@
 # `data/` — hướng dẫn dữ liệu
 
-> Thư mục này **được gitignore** (xem `.gitignore`). Mỗi máy phải tự sinh lại
-> 70.000 ảnh `.png` từ FashionMNIST gốc qua `src.data.split`.
+> Thư mục này **được gitignore** (xem `.gitignore`). Mỗi máy tự tải FashionMNIST
+> gốc về qua `src.data.split`; chỉ `data/splits/` (metadata text) được commit.
 
 ## Cấu trúc
 
 ```
 data/
-├── raw/                              # gitignore — FashionMNIST gốc
-│   ├── FashionMNIST/                 # archive gốc từ torchvision
-│   └── _torchvision_cache/           # cache nội bộ của torchvision (gitignore)
-├── processed/                        # gitignore — ảnh đã split ra PNG
-│   ├── train/<class_id>/*.png        # 54.000 ảnh (90% từ 60k train gốc)
-│   ├── val/<class_id>/*.png          # 6.000 ảnh (10% từ 60k train gốc)
-│   └── test/<class_id>/*.png         # 10.000 ảnh (gốc từ test set)
+├── processed/                        # gitignore — FashionMNIST gốc + cache
+│   ├── FashionMNIST/raw/             # file idx3/idx1 gốc của torchvision
+│   ├── train/<class_id>/*.png        # 50.000 ảnh (artifact Phase 1, không còn được đọc)
+│   ├── val/<class_id>/*.png          # 10.000 ảnh (artifact Phase 1, không còn được đọc)
+│   └── test/<class_id>/*.png         # 10.000 ảnh (artifact Phase 1, không còn được đọc)
 ├── splits/                           # metadata thuần text (committed)
 │   └── split_info.txt                # thông tin split: sizes, seed
 └── README.md                         # file này
 ```
 
 > **Quy ước**:
-> - `data/raw/` = input (chỉ chứa FashionMNIST gốc + cache, KHÔNG chứa ảnh đã xử lý)
-> - `data/processed/` = output (70.000 ảnh PNG đã split train/val/test)
+> - `data/processed/` = nơi torchvision tải FashionMNIST gốc về (dùng làm `root`)
 > - `data/splits/` = metadata (file text nhỏ, có thể commit)
 
 ## 10 lớp (theo thứ tự index)
@@ -41,68 +38,68 @@ data/
 | 8  | Bag |
 | 9  | Ankle boot |
 
-Mỗi lớp có **5.400 ảnh train + 600 ảnh val + 1.000 ảnh test** (chia đều từ
+Mỗi lớp có **5.000 ảnh train + 1.000 ảnh val + 1.000 ảnh test** (chia đều từ
 6.000 train + 1.000 test gốc của FashionMNIST).
 
-## Cách sinh dữ liệu
+## Cách chuẩn bị dữ liệu
 
-### Bước 1 — Chạy script split (1 lần, ~2-3 phút)
+### Bước 1 — Tải gốc & chia tập (1 lần, ~2-3 phút)
 
 ```bash
 python -m src.data.split --root data/processed --val-split 10000 --seed 42
 ```
 
-Script này sẽ:
+Lệnh này sẽ:
 
-1. Tải FashionMNIST gốc (~30 MB) về `data/raw/_torchvision_cache/` (lần đầu).
-2. Chia 60.000 ảnh train gốc thành **54.000 train + 6.000 val** (random, seed=42).
-3. Ghi tất cả 70.000 ảnh ra `.png` (28×28, grayscale) vào `data/processed/`
-   với tên `<class_name>_<original_idx>.png` trong folder tương ứng.
-4. In bảng số lượng ảnh / lớp / split.
+1. Tải FashionMNIST gốc (~30 MB) về `data/processed/FashionMNIST/raw/` (lần đầu).
+2. Chia 60.000 ảnh train gốc thành **50.000 train + 10.000 val** (stratified, seed=42).
+3. Test set giữ nguyên **10.000 ảnh** của FashionMNIST, không chia lại.
+4. Ghi metadata ra `data/splits/split_info.txt` và in số batch của từng tập.
 
-### Bước 2 — Idempotency
+> **Lưu ý:** `src.data.split` làm việc trên **tensor gốc của torchvision**, không
+> xuất ra file `.png`. Các thư mục `data/processed/{train,val,test}/` trong repo
+> là artifact của pipeline Phase 1 cũ và **không còn được đọc** bởi code hiện tại —
+> `run_training.py` và `run_experiments.py` đều gọi `split_pipeline` trực tiếp.
 
-Nếu `data/processed/train/<class>/*.png` đã đủ 5.000 file, script sẽ **skip**
-toàn bộ quá trình. Nếu muốn ép sinh lại:
+### Bước 2 — Xem lại kết quả split
 
 ```bash
-# Xóa rồi chạy lại
-Remove-Item -Recurse -Force data\processed    # PowerShell
-# rm -rf data/processed                       # bash
+# Metadata split (train/val/test sizes + seed)
+cat data/splits/split_info.txt
+# → Train Size: 50000 · Val Size: 10000 · Test Size: 10000
+
+# Số batch thực tế
 python -m src.data.split --root data/processed --val-split 10000 --seed 42
+# → Train batches: 782 · Val batches: 157 · Test batches: 157  (bs=64)
 ```
 
-## Verify sau khi sinh
+## Verify
 
 ```bash
-# Tổng số file
-Get-ChildItem -Recurse data\processed\*.png | Measure-Object    # PowerShell
-find data/processed -name "*.png" | wc -l                       # bash
-# → 70000
-
 # Test pass
-pytest tests/test_dataset.py -v
-# → 11 passed
+pytest tests -q
+# → 27 passed
 ```
 
 ## Tham số
 
 | Tham số | Mặc định | Ý nghĩa |
 |---------|----------|---------|
-| `--root` | `data/processed` | Thư mục output (ảnh đã split) |
-| `--val-split` | `0.1` | Tỷ lệ validation lấy từ train gốc (10% = 6.000 ảnh) |
+| `--root` | `data/processed` | Thư mục chứa FashionMNIST gốc |
+| `--val-split` | `10000` | Số ảnh validation lấy từ train gốc (10.000 ảnh = 1/6) |
 | `--seed` | `42` | Random seed cho split (reproducible) |
+| `--batch-size` | `64` | Batch size cho DataLoader |
 
-## Tại sao `.png` thay vì tensor trong RAM?
+## Vì sao tỷ lệ 5/6 – 1/6?
 
-- **Reproducible trên disk** — hash file kiểm tra được, debug từng ảnh qua File Explorer.
-- **Chống data leakage** — split ảnh gốc trước khi áp transform, mean/std tính từ
-  literature không leak vào val/test.
-- **Augmentation linh hoạt** — mỗi tập có thể có transform riêng (vd train có random
-  flip, val/test giữ nguyên) mà không phải lưu nhiều bản tensor.
-- **RAM thấp** — chỉ 1 batch tensor ở trong RAM lúc train, ảnh đọc on-the-fly.
+Từ 6.000 ảnh gốc mỗi lớp:
+- `1/6` → **1.000** ảnh val → train còn **5.000** ảnh (số tròn, không lệch lớp nào)
+- `0.1` → 600 ảnh val → train 5.400 (vẫn tròn, nhưng không khớp với
+  `split_info.txt` và các báo cáo đã commit)
 
-## Tại sao không commit `data/`?
+Toàn bộ project dùng chung `DEFAULT_VAL_RATIO = 1/6` trong `src/data/split.py`.
+
+## Vì sao không commit `data/`?
 
 - Tổng dung lượng ~140 MB (70k × 2 KB/ảnh PNG) — quá lớn cho git diff.
 - Mỗi máy phải tải từ `torchvision` về (~30 MB) — vẫn nhỏ hơn nhiều so với
@@ -113,6 +110,5 @@ pytest tests/test_dataset.py -v
 
 - `src/data/split.py` — code split
 - `src/data/dataset.py` — code load
-- `tests/test_dataset.py` — 11 test
 - `docs/PHASE1_REPORT.md` — báo cáo Phase 1
 - `docs/architecture.md` — system architecture

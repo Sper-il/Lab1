@@ -93,19 +93,22 @@ augment: False  # Will be enabled in Phase 2 if needed
 
 **Configuration:**
 ```yaml
-train_ratio: 0.9
-val_ratio: 0.1
+train_ratio: 0.8333333333333334   # 5/6
+val_ratio: 0.16666666666666666   # 1/6
 test_ratio: 0.0  # FashionMNIST provides separate test set
 random_seed: 42
 stratified: True  # Preserve class distribution
 ```
 
+> Dùng tỷ lệ 5/6 – 1/6 thay vì 0.9/0.1 vì chỉ 1/6 cho ra số lượng tròn
+> mỗi lớp: 5.000 train + 1.000 val từ 6.000 ảnh gốc.
+
 **Results:**
 
 | Split | Samples | Batches (bs=64) | Percentage |
 |-------|---------|-----------------|------------|
-| Train | 54,000 | 844 | 90% (of training data) |
-| Val   | 6,000  | 94  | 10% (of training data) |
+| Train | 50,000 | 782 | 5/6 (of training data) |
+| Val   | 10,000 | 157 | 1/6 (of training data) |
 | Test  | 10,000 | 157 | 100% (separate test set) |
 
 **Sample Batch Verification:**

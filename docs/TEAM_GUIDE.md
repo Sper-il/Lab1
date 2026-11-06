@@ -79,8 +79,8 @@ Kiểm tra output:
 data/
 ├── raw/                          # dataset gốc (auto download lần đầu)
 ├── processed/
-│   ├── train/<class_id>/*.png    # 54,000 ảnh
-│   ├── val/<class_id>/*.png      # 6,000 ảnh
+│   ├── train/<class_id>/*.png    # 50,000 ảnh
+│   ├── val/<class_id>/*.png      # 10,000 ảnh
 │   └── test/<class_id>/*.png     # 10,000 ảnh
 └── splits/
     └── split_info.txt            # metadata split

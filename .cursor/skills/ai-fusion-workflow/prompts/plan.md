@@ -28,10 +28,12 @@ Bạn là AI Engineer. Hãy lập kế hoạch cho module dưới đây. KHÔNG 
 1. Mục tiêu của module (1-2 câu).
 2. Các bước con cần làm (liệt kê theo thứ tự).
 3. Cấu trúc file / class / function đề xuất.
-4. Thư viện cần dùng + lý do.
-5. Edge case cần xử lý.
-6. Tiêu chí thành công (metric + threshold).
-7. Rủi ro kỹ thuật và cách giảm thiểu.
+4. Interfaces / APIs của module (input/output kèm shape / định dạng, khớp với Architecture Snapshot).
+5. Thư viện cần dùng + lý do.
+6. Edge case cần xử lý.
+7. Tiêu chí thành công (metric + threshold).
+8. Milestones cho module (chia sub-task theo thứ tự + ước lượng).
+9. Rủi ro kỹ thuật và cách giảm thiểu.
 ```
 
 ## Ví dụ đã điền

@@ -115,7 +115,7 @@ Generates 4 plots in `results/runs/`:
 | Metric | Value |
 |--------|-------|
 | Total samples | 70,000 (60k train + 10k test) |
-| Train/Val/Test split | 54,000 / 6,000 / 10,000 |
+| Train/Val/Test split | 50,000 / 10,000 / 10,000 |
 | Image shape | (1, 28, 28) |
 | Mean | 0.2860 |
 | Std | 0.3530 |

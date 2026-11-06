@@ -22,10 +22,13 @@
 | Tiêu chí đánh giá | <TBD> |
 
 ## Architecture Snapshot (Phase 2 — DESIGN)
-- Pattern: <TBD>
-- Modules: <TBD>
-- Data flow: `raw → processed → model → predictions → results`
-- Risks: xem `docs/architecture.md`
+- System architecture: <pattern + mô tả 1-2 câu, chi tiết xem `docs/architecture.md`>
+- Modules: <danh sách module + trách nhiệm mỗi module, ví dụ `data: load/augment | models: kiến trúc | training: vòng train | evaluation: metric`>
+- Folder structure: <theo chuẩn skill, chi tiết xem `templates/folder-structure.md`>
+- Data flow: `raw → processed → splits → train → predictions → results` (kèm shape, tần suất real-time/batch, chi tiết xem `docs/data-flow.md`)
+- Interfaces / APIs: <input/output từng module kèm shape/định dạng, chi tiết xem `docs/api.md`>
+- Milestones: <mốc theo tuần hoặc module, ví dụ `W1: scaffold | W2: data | W3: model + train | W4: eval + docs`>
+- Technical risks: <tóm tắt 2-3 rủi ro lớn nhất, chi tiết xem bảng `Risks & Mitigations` bên dưới>
 
 ## Active Module: <tên module>
 - **Describe** — <module làm gì, input/output, tiêu chí thành công>

@@ -1,0 +1,14 @@
+{
+  "trial_id": 9,
+  "val_acc": 92.33,
+  "train_acc": 92.79,
+  "params": {
+    "model_name": "simple_cnn",
+    "learning_rate": 0.001,
+    "optimizer": "adam",
+    "epochs": 10,
+    "batch_size": 128,
+    "weight_decay": 0.0,
+    "dropout": 0.5
+  }
+}
