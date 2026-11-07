@@ -89,7 +89,7 @@ def _embed3d_section() -> str:
             f"<div style='margin:6px 0'>{boxes}</div>"
             f"<p style='margin:6px 0'><button data-spin='{key}'>⏸ Dừng xoay</button> "
             f"<button data-reset='{key}'>⟲ Reset góc</button> "
-            f"Zoom <input data-zoom='{key}' type='range' min='40' max='400' value='150' style='vertical-align:middle'></p></div>"
+            f"Zoom <input data-zoom='{key}' type='range' min='60' max='500' value='260' style='vertical-align:middle'></p></div>"
         )
     if not datas:
         return "<p>⚠️ Chưa có file *_3d.json nào.</p>"
@@ -112,20 +112,20 @@ function initViewer(key) {{
   let sc = 0;
   pts.forEach(p => {{ sc = Math.max(sc, Math.abs(p.x - mx), Math.abs(p.y - my), Math.abs(p.z - mz)); }});
   pts.forEach(p => {{ p.x = (p.x - mx) / sc; p.y = (p.y - my) / sc; p.z = (p.z - mz) / sc; }});
-  const st = {{ax: -0.5, ay: 0.6, zoom: 150, spin: true}};
+  const st = {{ax: -0.5, ay: 0.6, zoom: 260, spin: true}};
   const on = new Array(10).fill(true);
   document.querySelectorAll("input[data-view='" + key + "']").forEach(cb => cb.onchange = () => on[+cb.dataset.cls] = cb.checked);
   const spinBtn = document.querySelector("button[data-spin='" + key + "']");
   if (spinBtn) spinBtn.onclick = e => {{ st.spin = !st.spin; e.target.textContent = st.spin ? '⏸ Dừng xoay' : '▶ Xoay tiếp'; }};
   const resetBtn = document.querySelector("button[data-reset='" + key + "']");
   const zoomInput = document.querySelector("input[data-zoom='" + key + "']");
-  if (resetBtn) resetBtn.onclick = () => {{ st.ax = -0.5; st.ay = 0.6; st.zoom = 150; if (zoomInput) zoomInput.value = 150; }};
+  if (resetBtn) resetBtn.onclick = () => {{ st.ax = -0.5; st.ay = 0.6; st.zoom = 260; if (zoomInput) zoomInput.value = 260; }};
   if (zoomInput) zoomInput.oninput = e => st.zoom = +e.target.value;
   let drag = false, lx = 0, ly = 0;
   cv.onmousedown = e => {{ drag = true; lx = e.clientX; ly = e.clientY; cv.style.cursor = 'grabbing'; }};
   window.addEventListener('mouseup', () => {{ drag = false; cv.style.cursor = 'grab'; }});
   window.addEventListener('mousemove', e => {{ if (!drag) return; st.ay += (e.clientX - lx) * 0.008; st.ax += (e.clientY - ly) * 0.008; lx = e.clientX; ly = e.clientY; }});
-  cv.onwheel = e => {{ e.preventDefault(); st.zoom = Math.min(400, Math.max(40, st.zoom - e.deltaY * 0.15)); if (zoomInput) zoomInput.value = st.zoom; }}, {{passive: false}};
+  cv.onwheel = e => {{ e.preventDefault(); st.zoom = Math.min(500, Math.max(60, st.zoom - e.deltaY * 0.15)); if (zoomInput) zoomInput.value = st.zoom; }}, {{passive: false}};
   function frame() {{
     if (st.spin && !drag) st.ay += 0.004;
     const cx = Math.cos(st.ax), sx = Math.sin(st.ax), cy = Math.cos(st.ay), sy = Math.sin(st.ay);
@@ -147,7 +147,7 @@ function initViewer(key) {{
       proj.push({{sx: W/2 + x1 * st.zoom * per, sy: H/2 - y1 * st.zoom * per, d: z2, c: p.c}});
     }}
     proj.sort((a, b) => a.d - b.d);
-    for (const q of proj) {{ ctx.fillStyle = COLORS3D[q.c]; ctx.globalAlpha = 0.6; ctx.fillRect(q.sx, q.sy, 3, 3); }}
+    for (const q of proj) {{ ctx.fillStyle = COLORS3D[q.c]; ctx.globalAlpha = 0.9; ctx.fillRect(q.sx, q.sy, 4, 4); }}
     ctx.globalAlpha = 1;
     requestAnimationFrame(frame);
   }}
@@ -226,7 +226,7 @@ def build_report(run_id: str = "20261015-final", commit: str = "049acf0") -> str
   code {{ background: #f6f6f6; padding: 1px 5px; border-radius: 4px; }}
   .header {{ background: #fafafa; border: 1px solid #e5e5e5; padding: 12px 16px; border-radius: 8px; }}
   .viewer {{ border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 14px; margin: 14px 0; background: #fff; }}
-  canvas {{ border: 1px solid #ddd; border-radius: 8px; width: 100%; height: 520px; cursor: grab; background: #0b1020; }}
+  canvas {{ border: 1px solid #ddd; border-radius: 8px; width: 100%; height: 520px; cursor: grab; background: #ffffff; }}
   button {{ padding: 6px 12px; margin-right: 6px; }}
 </style>
 </head>
