@@ -259,9 +259,12 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 > per-person reports and `results/runs/` for the generated artifacts.
 
 ### Artifacts
-- **Báo cáo trực quan:** `results/runs/report.html` (1 file offline, mở là xem được — sinh bằng `python src/evaluation/visualize_html.py`)
-- **Training curves:** `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`
-- **Grid search:** `results/runs/hyperopt.md`, `hyperopt.json`, `hyperopt_best.json`
+- **Báo cáo trực quan:** `results/runs/report.html` (1 file offline, 13 ảnh base64, mở là xem được — sinh bằng `python src/evaluation/visualize_html.py`)
+- **Bản demo rút gọn:** `results/demo/20261015-final/index.html` (3 case + metric chính)
+- **Training curves:** `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`, `results/runs/train_val_gap.png`
+- **Data visuals:** `results/runs/split_overview.png`, `results/runs/normalize_curve.png`, `results/runs/class_distribution.png`, `results/runs/per_class_samples.png`, `results/runs/pixel_histogram.png`, `results/runs/sample_images.png`
+- **Grid search:** `results/runs/hyperopt.md`, `hyperopt.json`, `hyperopt_best.json`, `results/runs/hyperopt_trials.png`
+- **Eval visuals:** `results/runs/confusion_matrix.png`, `results/runs/top_confusions.png`, `results/runs/predictions.png`
 - **Architecture comparison:** `results/runs/architecture_selection.md`
 - **Confusion matrix:** `results/runs/confusion_matrix.png`
 - **Predictions plot:** `results/runs/predictions.png`
