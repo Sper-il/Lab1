@@ -123,6 +123,9 @@ results/runs/*
 !results/runs/pca_explained.png
 !results/runs/pca_3d.json
 !results/runs/pca_3d.html
+!results/runs/tsne_3d.png
+!results/runs/tsne_3d.json
+!results/runs/tsne_3d.html
 !results/demo/20261015-final/index.html
 logs/
 

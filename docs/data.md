@@ -46,7 +46,8 @@
 - `data/processed/{train,val,test}/<class_id>/*.png` (70k PNG) là artifact của pipeline Phase 1 cũ, **không còn được đọc** bởi `run_training.py` / `run_experiments.py` (đọc tensor gốc qua `split_pipeline`).
 - EDA plots thật: `results/runs/class_distribution.png`, `sample_images.png`, `pixel_histogram.png`, `per_class_samples.png`.
 - Embedding 2D (2.000 ảnh test, `python src/data/embedding_viz.py --n 2000 --thumbs 600`): `embedding_pca_color.png`, `embedding_pca_thumbs.png`, `embedding_tsne_color.png`, `embedding_tsne_thumbs.png` (PCA giải thích ~47% phương sai, t-SNE perplexity=30; UMAP bỏ qua vì lab chưa cài `umap-learn`). Cả 4 ảnh đã nhúng trong `results/runs/report.html` mục 8.
-- PCA 3D (3.000 ảnh test, `python src/evaluation/pca_3d.py --samples 3000 --seed 42` → `python src/evaluation/pca_3d_html.py`): `pca_3d.png`, `pca_explained.png`, `pca_3d.json`, `pca_3d.html` (3PC giữ 53,3% phương sai; trang HTML xoay/zoom offline bằng `<canvas>`, không CDN). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
+- PCA 3D (3.000 ảnh test, `python src/evaluation/pca_3d.py --samples 3000 --seed 42` → `python src/evaluation/embed3d_html.py --input pca_3d.json --output pca_3d.html --title "PCA 3D"`): `pca_3d.png`, `pca_explained.png`, `pca_3d.json`, `pca_3d.html` (3PC giữ 53,3% phương sai; trang HTML xoay/zoom offline bằng `<canvas>`, không CDN). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
+- t-SNE 3D (2.000 ảnh test, `python src/evaluation/tsne_3d.py --samples 2000 --seed 42 --perplexity 30` → `python src/evaluation/embed3d_html.py --input tsne_3d.json --output tsne_3d.html --title "t-SNE 3D"`): `tsne_3d.png`, `tsne_3d.json`, `tsne_3d.html` (cụm tách rõ hơn PCA, đúng kiểu ảnh mẫu). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
 
 ## 7. Tái tạo
 
