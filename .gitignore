@@ -121,6 +121,10 @@ results/runs/*
 !results/runs/embedding_tsne_thumbs.png
 !results/runs/embedding_umap_color.png
 !results/runs/embedding_umap_thumbs.png
+!results/runs/compare_pca_thumbs.png
+!results/runs/compare_tsne_thumbs.png
+!results/runs/compare_umap_color.png
+!results/runs/compare_mde_color.png
 !results/runs/pca_3d.png
 !results/runs/pca_explained.png
 !results/runs/pca_3d.json
