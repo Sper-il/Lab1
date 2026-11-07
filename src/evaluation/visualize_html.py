@@ -37,6 +37,7 @@ IMAGES = [
     ("compare_pca_thumbs.png", "So sánh Zalando: PCA Fashion-MNIST (trái) vs MNIST gốc (phải), thumbnail nền tối"),
     ("compare_umap_color.png", "So sánh Zalando: UMAP Fashion-MNIST (trái) vs MNIST gốc (phải), scatter màu"),
     ("compare_mde_color.png", "So sánh Zalando: PyMDE Fashion-MNIST (trái) vs MNIST gốc (phải), scatter màu"),
+    ("projector/sprite.png", "Sprite 2.000 ảnh 28×28 cho TensorBoard Projector (bản PyTorch của project_zalando.py gốc)"),
     ("pca_3d.png", "PCA 3D scatter 3.000 ảnh (3PC giữ 53,3% phương sai, xoay trực tiếp ở mục 9)"),
     ("pca_explained.png", "PCA explained variance 10 thành phần đầu (PC1+PC2 ~47%)"),
     ("tsne_3d.png", "t-SNE 3D scatter 2.000 ảnh (perplexity=30, xoay trực tiếp ở mục 9)"),
