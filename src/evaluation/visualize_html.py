@@ -34,6 +34,8 @@ IMAGES = [
     ("pca_3d.png", "PCA 3D scatter 3.000 ảnh (3PC giữ 53,3% phương sai, xem bản tương tác pca_3d.html)"),
     ("pca_explained.png", "PCA explained variance 10 thành phần đầu (PC1+PC2 ~47%)"),
     ("tsne_3d.png", "t-SNE 3D scatter 2.000 ảnh (perplexity=30, xem bản tương tác tsne_3d.html)"),
+    ("umap_3d.png", "UMAP 3D scatter 2.000 ảnh (n_neighbors=15, xem bản tương tác umap_3d.html)"),
+    ("mde_3d.png", "PyMDE 3D scatter 2.000 ảnh (preserve_neighbors, xem bản tương tác mde_3d.html)"),
     ("normalize_curve.png", "Đường cong chuẩn hóa (pixel − 0,2860) / 0,3530 → [-0,81, 2,02]"),
     ("sample_images.png", "25 ảnh mẫu ngẫu nhiên"),
     ("loss_curve.png", "Loss train vs val qua 15 epochs (best epoch 11)"),

@@ -48,6 +48,8 @@
 - Embedding 2D (2.000 ảnh test, `python src/data/embedding_viz.py --n 2000 --thumbs 600`): `embedding_pca_color.png`, `embedding_pca_thumbs.png`, `embedding_tsne_color.png`, `embedding_tsne_thumbs.png` (PCA giải thích ~47% phương sai, t-SNE perplexity=30; UMAP bỏ qua vì lab chưa cài `umap-learn`). Cả 4 ảnh đã nhúng trong `results/runs/report.html` mục 8.
 - PCA 3D (3.000 ảnh test, `python src/evaluation/pca_3d.py --samples 3000 --seed 42` → `python src/evaluation/embed3d_html.py --input pca_3d.json --output pca_3d.html --title "PCA 3D"`): `pca_3d.png`, `pca_explained.png`, `pca_3d.json`, `pca_3d.html` (3PC giữ 53,3% phương sai; trang HTML xoay/zoom offline bằng `<canvas>`, không CDN). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
 - t-SNE 3D (2.000 ảnh test, `python src/evaluation/tsne_3d.py --samples 2000 --seed 42 --perplexity 30` → `python src/evaluation/embed3d_html.py --input tsne_3d.json --output tsne_3d.html --title "t-SNE 3D"`): `tsne_3d.png`, `tsne_3d.json`, `tsne_3d.html` (cụm tách rõ hơn PCA, đúng kiểu ảnh mẫu). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
+- UMAP 3D (2.000 ảnh test, `python src/evaluation/umap_3d.py --samples 2000 --seed 42` → `python src/evaluation/embed3d_html.py --input umap_3d.json --output umap_3d.html --title "UMAP 3D"`): `umap_3d.png`, `umap_3d.json`, `umap_3d.html` (n_neighbors=15, min_dist=0,1). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
+- PyMDE 3D (2.000 ảnh test, `python src/evaluation/mde_3d.py --samples 2000 --seed 42` → `python src/evaluation/embed3d_html.py --input mde_3d.json --output mde_3d.html --title "PyMDE 3D"`): `mde_3d.png`, `mde_3d.json`, `mde_3d.html` (preserve_neighbors trên CPU). Ảnh tĩnh đã nhúng trong `results/runs/report.html` mục 8.
 
 ## 7. Tái tạo
 
