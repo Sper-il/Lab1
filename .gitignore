@@ -109,6 +109,7 @@ results/runs/*
 !results/runs/sample_images.png
 !results/runs/confusion_matrix.png
 !results/runs/predictions.png
+!results/runs/report.html
 logs/
 
 # OS

@@ -259,6 +259,7 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 > per-person reports and `results/runs/` for the generated artifacts.
 
 ### Artifacts
+- **Báo cáo trực quan:** `results/runs/report.html` (1 file offline, mở là xem được — sinh bằng `python src/evaluation/visualize_html.py`)
 - **Training curves:** `results/runs/loss_curve.png`, `results/runs/accuracy_curve.png`
 - **Grid search:** `results/runs/hyperopt.md`, `hyperopt.json`, `hyperopt_best.json`
 - **Architecture comparison:** `results/runs/architecture_selection.md`

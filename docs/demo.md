@@ -34,6 +34,7 @@ $env:PYTHONPATH = "."
 python src/evaluation/run_evaluation.py
 
 # 3. Xem output (double-click, không cần chạy gì thêm)
+# results/runs/report.html           — báo cáo trực quan 1 file (offline, mở là xem được)
 # results/runs/predictions.png       — 20 ảnh predicted vs actual (xanh=đúng, đỏ=sai)
 # results/runs/confusion_matrix.png  — heatmap normalized 10×10
 # results/runs/loss_curve.png        — train vs val loss 15 epochs
