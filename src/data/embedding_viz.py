@@ -56,45 +56,61 @@ def load_fashion(n: int):
 
 def scatter_color(xy: np.ndarray, labels: np.ndarray, title: str, out: Path) -> None:
     fig, ax = plt.subplots(figsize=(8, 7))
-    sc = ax.scatter(xy[:, 0], xy[:, 1], c=labels, cmap="tab10", s=6, alpha=0.8)
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+    sc = ax.scatter(xy[:, 0], xy[:, 1], c=labels, cmap="tab10", s=8, alpha=0.75,
+                    linewidths=0, edgecolors="none")
     cbar = fig.colorbar(sc, ax=ax, ticks=range(10))
     cbar.set_ticklabels(CLASS_NAMES)
-    ax.set_title(title)
+    ax.set_title(title, fontsize=13, fontweight="bold")
     ax.set_xticks([])
     ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_visible(False)
     fig.tight_layout()
-    fig.savefig(out, dpi=110, bbox_inches="tight")
+    fig.savefig(out, dpi=120, bbox_inches="tight")
     plt.close(fig)
 
 
-def scatter_thumbs(xy: np.ndarray, imgs: np.ndarray, title: str, out: Path, n_thumbs: int = 600) -> None:
-    # Chuẩn hóa embedding về [0,1] để đặt thumbnail không đè quá nhiều.
+def scatter_thumbs(xy: np.ndarray, imgs: np.ndarray, title: str, out: Path, n_thumbs: int = 2000) -> None:
+    # Phong cách Zalando: nền đen, thumbnail xám dày đặc phủ kín cụm.
+    rng = np.random.default_rng(42)
+    n = len(xy)
+    if n > n_thumbs:
+        idx = rng.choice(n, size=n_thumbs, replace=False)
+        # Vẽ từ dưới lên để chồng lấn tự nhiên.
+        order = np.argsort(xy[idx, 1])
+        idx = idx[order]
+    else:
+        idx = np.argsort(xy[:, 1])
     lo = xy.min(axis=0)
     hi = xy.max(axis=0)
     norm = (xy - lo) / (hi - lo + 1e-9)
-    idx = np.linspace(0, len(norm) - 1, min(n_thumbs, len(norm))).astype(int)
-    fig, ax = plt.subplots(figsize=(9, 9))
-    ax.set_facecolor("black")
-    fig.patch.set_facecolor("black")
-    ax.set_title(title, color="white")
+    fig, ax = plt.subplots(figsize=(10, 10))
+    fig.patch.set_facecolor("#0b0e14")
+    ax.set_facecolor("#0b0e14")
+    ax.set_title(title, color="white", fontsize=14, fontweight="bold", pad=10)
+    # Zoom nhỏ để phủ dày như ảnh mẫu (2000 thumbs trên 10 inch).
+    zoom = 0.30 if len(idx) <= 800 else 0.24
     for i in idx:
-        thumb = imgs[i]
-        imagebox = OffsetImage(thumb, zoom=0.35, cmap="gray")
-        ab = AnnotationBbox(imagebox, (norm[i, 0], norm[i, 1]), frameon=False, pad=0.1)
+        imagebox = OffsetImage(imgs[i], zoom=zoom, cmap="gray")
+        ab = AnnotationBbox(imagebox, (norm[i, 0], norm[i, 1]), frameon=False, pad=0.0)
         ax.add_artist(ab)
-    ax.set_xlim(-0.05, 1.05)
-    ax.set_ylim(-0.05, 1.05)
+    ax.set_xlim(-0.03, 1.03)
+    ax.set_ylim(-0.03, 1.03)
     ax.set_xticks([])
     ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_color("#2a3342")
     fig.tight_layout()
-    fig.savefig(out, dpi=110, bbox_inches="tight", facecolor="black")
+    fig.savefig(out, dpi=130, bbox_inches="tight", facecolor="#0b0e14")
     plt.close(fig)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Vẽ embedding PCA/t-SNE/UMAP cho FashionMNIST.")
     parser.add_argument("--n", type=int, default=2000, help="Số ảnh test dùng (mặc định 2000).")
-    parser.add_argument("--thumbs", type=int, default=600, help="Số thumbnail vẽ (mặc định 600).")
+    parser.add_argument("--thumbs", type=int, default=2000, help="Số thumbnail vẽ (mặc định 2000, kiểu Zalando phủ dày).")
     args = parser.parse_args(argv)
 
     from sklearn.decomposition import PCA
@@ -124,6 +140,7 @@ def main(argv: list[str] | None = None) -> int:
         reducer = umap.UMAP(n_components=2, random_state=42)
         xy_umap = reducer.fit_transform(flat_z)
         scatter_color(xy_umap, labels, f"UMAP on Fashion-MNIST test ({len(labels)} images)", RUNS_DIR / "embedding_umap_color.png")
+        scatter_thumbs(xy_umap, imgs, f"UMAP on Fashion-MNIST ({len(labels)} images)", RUNS_DIR / "embedding_umap_thumbs.png", args.thumbs)
         print("UMAP done.")
     except Exception as e:  # pragma: no cover - moi truong lab thuong thieu umap
         print(f"Skip UMAP (umap-learn not installed): {type(e).__name__}")

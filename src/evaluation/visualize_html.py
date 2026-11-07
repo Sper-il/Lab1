@@ -28,14 +28,16 @@ IMAGES = [
     ("per_class_samples.png", "Ảnh mẫu mỗi lớp (1 ảnh/lớp)"),
     ("pixel_histogram.png", "Histogram cường độ pixel (2 đỉnh: nền sáng / vật thể tối)"),
     ("embedding_pca_color.png", "PCA scatter tô màu 10 lớp (2.000 ảnh test, giải thích ~47% phương sai)"),
-    ("embedding_pca_thumbs.png", "PCA thumbnail scatter nền đen (600 ảnh mẫu đặt tại vị trí PCA)"),
+    ("embedding_pca_thumbs.png", "PCA thumbnail nền tối kiểu Zalando (2.000 ảnh phủ dày tại vị trí PCA)"),
     ("embedding_tsne_color.png", "t-SNE scatter tô màu 10 lớp (perplexity=30, cụm tách rõ hơn PCA)"),
-    ("embedding_tsne_thumbs.png", "t-SNE thumbnail scatter nền đen (600 ảnh mẫu)"),
-    ("pca_3d.png", "PCA 3D scatter 3.000 ảnh (3PC giữ 53,3% phương sai, xem bản tương tác pca_3d.html)"),
+    ("embedding_tsne_thumbs.png", "t-SNE thumbnail nền tối kiểu Zalando (2.000 ảnh phủ dày)"),
+    ("embedding_umap_color.png", "UMAP scatter tô màu 10 lớp (2.000 ảnh, n_neighbors=15)"),
+    ("embedding_umap_thumbs.png", "UMAP thumbnail nền tối kiểu Zalando (2.000 ảnh phủ dày)"),
+    ("pca_3d.png", "PCA 3D scatter 3.000 ảnh (3PC giữ 53,3% phương sai, xoay trực tiếp ở mục 9)"),
     ("pca_explained.png", "PCA explained variance 10 thành phần đầu (PC1+PC2 ~47%)"),
-    ("tsne_3d.png", "t-SNE 3D scatter 2.000 ảnh (perplexity=30, xem bản tương tác tsne_3d.html)"),
-    ("umap_3d.png", "UMAP 3D scatter 2.000 ảnh (n_neighbors=15, xem bản tương tác umap_3d.html)"),
-    ("mde_3d.png", "PyMDE 3D scatter 2.000 ảnh (preserve_neighbors, xem bản tương tác mde_3d.html)"),
+    ("tsne_3d.png", "t-SNE 3D scatter 2.000 ảnh (perplexity=30, xoay trực tiếp ở mục 9)"),
+    ("umap_3d.png", "UMAP 3D scatter 2.000 ảnh (n_neighbors=15, xoay trực tiếp ở mục 9)"),
+    ("mde_3d.png", "PyMDE 3D scatter 2.000 ảnh (preserve_neighbors, xoay trực tiếp ở mục 9)"),
     ("normalize_curve.png", "Đường cong chuẩn hóa (pixel − 0,2860) / 0,3530 → [-0,81, 2,02]"),
     ("sample_images.png", "25 ảnh mẫu ngẫu nhiên"),
     ("loss_curve.png", "Loss train vs val qua 15 epochs (best epoch 11)"),
@@ -226,7 +228,7 @@ def build_report(run_id: str = "20261015-final", commit: str = "049acf0") -> str
   code {{ background: #f6f6f6; padding: 1px 5px; border-radius: 4px; }}
   .header {{ background: #fafafa; border: 1px solid #e5e5e5; padding: 12px 16px; border-radius: 8px; }}
   .viewer {{ border: 1px solid #e5e5e5; border-radius: 8px; padding: 12px 14px; margin: 14px 0; background: #fff; }}
-  canvas {{ border: 1px solid #ddd; border-radius: 8px; width: 100%; height: 520px; cursor: grab; background: #ffffff; }}
+  canvas {{ border: 1px solid #ddd; border-radius: 8px; width: 100%; height: 520px; cursor: grab; background: #0b1020; }}
   button {{ padding: 6px 12px; margin-right: 6px; }}
 </style>
 </head>
