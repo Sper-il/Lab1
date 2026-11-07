@@ -31,6 +31,7 @@ Danh sách tất cả tài liệu trong project FashionMNIST.
 | File | Description |
 |------|-------------|
 | [architecture.md](./architecture.md) | System architecture |
+| [model.md](./model.md) | Báo cáo tổng quan Model (báo cáo chính, không phải cá nhân) |
 | [description.md](./description.md) | Mô tả project (Define 6 mục) |
 | [data.md](./data.md) | Quy ước dữ liệu |
 | [data-flow.md](./data-flow.md) | Luồng dữ liệu |
