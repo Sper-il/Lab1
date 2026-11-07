@@ -128,6 +128,10 @@ results/runs/*
 !results/runs/projector/
 !results/runs/projector/sprite.png
 !results/runs/projector/Ytest.tsv
+results/runs/projector/Xtest.tsv
+results/runs/projector/events.*
+results/runs/projector/02000/
+results/runs/projector/projector_config.pbtxt
 !results/runs/pca_3d.png
 !results/runs/pca_explained.png
 !results/runs/pca_3d.json
