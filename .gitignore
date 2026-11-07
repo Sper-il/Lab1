@@ -126,7 +126,6 @@ results/runs/*
 !results/runs/compare_umap_color.png
 !results/runs/compare_mde_color.png
 !results/runs/projector/
-results/runs/projector/*
 !results/runs/projector/sprite.png
 !results/runs/projector/Ytest.tsv
 !results/runs/pca_3d.png
