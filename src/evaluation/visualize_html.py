@@ -24,12 +24,17 @@ RUNS_DIR = PROJECT_ROOT / "results" / "runs"
 # Ảnh nhúng theo đúng quy ước plots/ của skill.
 IMAGES = [
     ("class_distribution.png", "Phân bố 10 lớp (cân bằng hoàn hảo 6.000/lớp gốc)"),
+    ("split_overview.png", "Tổng quan split 50k/10k/10k + mỗi lớp 5k/1k/1k (seed=42)"),
     ("per_class_samples.png", "Ảnh mẫu mỗi lớp (1 ảnh/lớp)"),
     ("pixel_histogram.png", "Histogram cường độ pixel (2 đỉnh: nền sáng / vật thể tối)"),
+    ("normalize_curve.png", "Đường cong chuẩn hóa (pixel − 0,2860) / 0,3530 → [-0,81, 2,02]"),
     ("sample_images.png", "25 ảnh mẫu ngẫu nhiên"),
     ("loss_curve.png", "Loss train vs val qua 15 epochs (best epoch 11)"),
     ("accuracy_curve.png", "Accuracy train vs val qua 15 epochs"),
+    ("train_val_gap.png", "Gap overfit train−val + val_loss (đánh dấu best epoch 11)"),
+    ("hyperopt_trials.png", "Grid search 16 trials (best T9 đỏ, val 92,33%)"),
     ("confusion_matrix.png", "Confusion matrix normalized 10×10 (hàng = recall từng lớp)"),
+    ("top_confusions.png", "Top-5 cặp nhầm (tổng 367 lỗi, Shirt↔T-shirt/top chiếm 185)"),
     ("predictions.png", "20 ảnh predicted vs actual (xanh = đúng, đỏ = sai)"),
 ]
 

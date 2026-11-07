@@ -110,6 +110,12 @@ results/runs/*
 !results/runs/confusion_matrix.png
 !results/runs/predictions.png
 !results/runs/report.html
+!results/runs/split_overview.png
+!results/runs/normalize_curve.png
+!results/runs/hyperopt_trials.png
+!results/runs/top_confusions.png
+!results/runs/train_val_gap.png
+!results/demo/20261015-final/index.html
 logs/
 
 # OS

@@ -33,8 +33,15 @@ python run_experiments.py --smoke
 $env:PYTHONPATH = "."
 python src/evaluation/run_evaluation.py
 
+# 2b. Sinh thêm hình visualize còn thiếu + bản demo rút gọn (matplotlib only, ~10 giây)
+python src/evaluation/extra_visuals.py --demo-ts 20261015-final
+
+# 2c. Sinh báo cáo trực quan full (13 ảnh base64, offline, ~1 MB)
+python src/evaluation/visualize_html.py --run-id 20261015-final --commit 049acf0 --output results/runs/report.html
+
 # 3. Xem output (double-click, không cần chạy gì thêm)
-# results/runs/report.html           — báo cáo trực quan 1 file (offline, mở là xem được)
+# results/runs/report.html           — báo cáo trực quan 1 file (offline, 13 ảnh, mở là xem được)
+# results/demo/20261015-final/index.html — bản demo rút gọn (3 case + metric chính)
 # results/runs/predictions.png       — 20 ảnh predicted vs actual (xanh=đúng, đỏ=sai)
 # results/runs/confusion_matrix.png  — heatmap normalized 10×10
 # results/runs/loss_curve.png        — train vs val loss 15 epochs
