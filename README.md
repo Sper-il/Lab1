@@ -288,7 +288,7 @@ $env:PYTHONPATH = "."; python -m pytest tests -q   # 27 passed
 | [docs/README.md](docs/README.md) | Documentation index |
 | [docs/AI_Usage.md](docs/AI_Usage.md) | AI assistance report (chuẩn 7 mục) |
 | [docs/architecture.md](docs/architecture.md) | System architecture |
-| [docs/model.md](docs/model.md) | Báo cáo tổng quan Model (báo cáo chính) |
+| [docs/model.md](docs/model.md) | Mô tả Model (baseline, backbone + head, loss, params, config) |
 | [docs/description.md](docs/description.md) | Mô tả project (Define 6 mục) |
 | [docs/data.md](docs/data.md) | Quy ước dữ liệu |
 | [docs/data-flow.md](docs/data-flow.md) | Luồng dữ liệu |
