@@ -115,6 +115,14 @@ results/runs/*
 !results/runs/hyperopt_trials.png
 !results/runs/top_confusions.png
 !results/runs/train_val_gap.png
+!results/runs/embedding_pca_color.png
+!results/runs/embedding_pca_thumbs.png
+!results/runs/embedding_tsne_color.png
+!results/runs/embedding_tsne_thumbs.png
+!results/runs/pca_3d.png
+!results/runs/pca_explained.png
+!results/runs/pca_3d.json
+!results/runs/pca_3d.html
 !results/demo/20261015-final/index.html
 logs/
 
